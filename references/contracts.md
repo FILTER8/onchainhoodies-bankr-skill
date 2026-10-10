@@ -42,3 +42,8 @@ Based on the user-provided `HoodOS(20261010-164556).sol` and `HoodWallet(2026101
 - `HoodWallet.owner()` resolves ownership via NFT ownership; wallet execution additionally obeys HoodOS policy.
 
 This source inspection does not prove the current live contract deployment has the same bytecode/configuration. Check verified contract or live chain before executing funds-moving transactions.
+
+## HoodJourney extension
+
+Deployed HoodJourneyRegistry: `0x93513A0e4d0E016ccf296C4c2888b59c06708ea7` (user-supplied; verify chain).
+See `references/hoodjourney.md` for correct nested ERC-6551 execution and the distinction between owner signing and delegated agent signing.

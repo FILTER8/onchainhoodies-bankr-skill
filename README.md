@@ -44,3 +44,13 @@ MIT (skill code and documentation). NFT artwork and related OnChainHoodies proje
 ## One-command activation (v0.3)
 
 Ask Bankr: `@bankrbot activate my Hoodie #351`. The skill directs Bankr to attempt a funded ETH-to-OCH swap when needed, then approve precisely the activation fee and activate through HoodOS. Every write remains subject to Bankr wallet security settings and tool permissions. If ETH is insufficient or safe routing is unavailable, Bankr should report the blocker rather than request an extra OCH-buy prompt.
+
+## v0.4: Hood knowledge and milestones
+
+Read public Hood ecosystem data and inspect HoodJourney milestones. For eligible on-chain claims Bankr must execute the Journey registry function **through** `HoodWallet.execute`; direct EOA check-ins are rejected by the registry. This write path remains untested in Bankr and requires owner authorization or valid scoped delegation. See `references/api.md` and `references/hoodjourney.md`.
+
+```bash
+node scripts/hood-knowledge.mjs --help
+node scripts/hood-knowledge.mjs milestones
+node scripts/hood-knowledge.mjs journey 351
+```
