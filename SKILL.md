@@ -19,6 +19,18 @@ For a local, independent read-only diagnostic (requires Node.js 20+ and `npm ins
 
 For "show my Hoodies", use Bankr's NFT portfolio if available, filter by exact collection contract **and chain ID**, and cross-check each `ownerOf`. Do not claim that enumerating wallet holdings via the collection contract is universally supported. If the host has no reliable NFT inventory source, request token IDs rather than guess.
 
+## Primary command: activate my Hoodie
+
+**Treat the single command `@bankrbot activate my Hoodie #<id>` as an actionable request for the FULL workflow** (quote swap if short of OCH, swap if sufficiently funded, exact token approval if needed, contract activation, final on-chain verification). It is **not** merely a request to inspect status or explain prerequisites. Do not respond "you have 0 OCH, let me know if you want to acquire OCH" when Bankr can obtain it with the owner's available ETH. Begin the funding preflight and attempt the available swap workflow within the same request. The invocation expresses intent to activate, including the required OCH acquisition; it does NOT override any Bankr security confirmation, spending limits, quote protections, or transaction permissions.
+
+**Decision table:**
+
+- Already active -> return active status. No swap.
+- Inactive, OCH balance >= current fee -> skip swap and continue to approval/activation.
+- Inactive, OCH balance < current fee, ETH sufficient for safe quote plus gas -> attempt quote, swap, approval, activation in sequence using the installed Bankr tools and required permissions; do not ask for a *second* natural-language instruction to acquire OCH.
+- Inactive, OCH shortfall, ETH too low / no safe swap quote -> stop and state the specific deficit, without a purchase.
+- Bankr wallet policy explicitly blocks or requires user confirmation -> obey the host policy and describe the blocked or approval-pending action; never bypass it.
+
 ## Activate a Hoodie (one natural-language request)
 
 Interpret **"Bankrbot, activate my Hoodie #351"** (or equivalent) as a request to complete the activation workflow, **including acquiring the missing OCH using a supported swap** if necessary. Do not force the user to request each intermediate step separately. Follow Bankr's own approval, transaction-signing and spending-policy safeguards; this skill cannot waive or override them.

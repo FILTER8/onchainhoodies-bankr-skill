@@ -40,3 +40,7 @@ Official Bankr installation docs: https://docs.bankr.bot/skills/in-bankr/from-gi
 ## License
 
 MIT (skill code and documentation). NFT artwork and related OnChainHoodies project assets are outside the scope of this repository.
+
+## One-command activation (v0.3)
+
+Ask Bankr: `@bankrbot activate my Hoodie #351`. The skill directs Bankr to attempt a funded ETH-to-OCH swap when needed, then approve precisely the activation fee and activate through HoodOS. Every write remains subject to Bankr wallet security settings and tool permissions. If ETH is insufficient or safe routing is unavailable, Bankr should report the blocker rather than request an extra OCH-buy prompt.
