@@ -1,6 +1,6 @@
 ---
 name: onchainhoodies
-description: Inspect OnChainHoodies NFTs and HoodOS token-bound HoodWallets on Robinhood Chain, check NFT ownership, wallet activation, OCH cost and approval, and help a Bankr wallet owner activate a Hoodie safely. Use for requests such as "show my Hoodies", "inspect Hoodie #351", "what is my HoodWallet", "check activation", or "activate my Hoodie".
+description: Inspect OnChainHoodies NFTs and HoodOS token-bound HoodWallets on Robinhood Chain, check NFT ownership, wallet activation, OCH cost and approval, and complete owner-authorized Hoodie activation with an optional ETH-to-OCH swap when needed. Use for requests such as "show my Hoodies", "inspect Hoodie #351", "what is my HoodWallet", "check activation", or "activate my Hoodie".
 ---
 
 # OnChainHoodies for Bankr
@@ -19,15 +19,21 @@ For a local, independent read-only diagnostic (requires Node.js 20+ and `npm ins
 
 For "show my Hoodies", use Bankr's NFT portfolio if available, filter by exact collection contract **and chain ID**, and cross-check each `ownerOf`. Do not claim that enumerating wallet holdings via the collection contract is universally supported. If the host has no reliable NFT inventory source, request token IDs rather than guess.
 
-## Activation (explicit approval; never automatic spending)
+## Activate a Hoodie (one natural-language request)
 
-1. Repeat every read-only check immediately before writing. Validate chain ID 4663, exact contract addresses, matching signer/owner, `activationEnabled` and `isActive=false`.
-2. Present the live cost, ETH gas requirement, current OCH balance, and whether an ERC-20 approval is needed. Get the user's explicit consent to **each** write transaction. Never acquire OCH or swap tokens automatically; separately ask before any purchase.
-3. If allowance is insufficient, use the host's supported transaction mechanism to send `approve(HOODOS, activationCost)` **from the NFT-owning wallet** to the *configured payment token*. Prefer an exact, limited allowance rather than unlimited approval. Wait for confirmed success; reread allowance.
-4. Request authorization to send `activate(tokenId)` **from that same NFT-owning wallet** to HoodOS. This function transfers the activation cost from `msg.sender`, deploys the token-bound wallet if needed, and marks the current owner active.
-5. After receipt confirmation, reread `isActive(tokenId)` and `walletOf(tokenId)`. Provide transaction hash and explorer URL only if observed in the host result. If a write fails or the host cannot target Robinhood Chain, explain the limitation and stop; do not fabricate completion.
+Interpret **"Bankrbot, activate my Hoodie #351"** (or equivalent) as a request to complete the activation workflow, **including acquiring the missing OCH using a supported swap** if necessary. Do not force the user to request each intermediate step separately. Follow Bankr's own approval, transaction-signing and spending-policy safeguards; this skill cannot waive or override them.
 
-**Bankr compatibility:** This skill describes the intended workflow but cannot grant the Bankr X bot any new signing permission. Use only documented Bankr wallet actions available in the actual agent/runtime. Do **not** assume installation into an individual Bankr terminal also installs the skill globally into public @bankrbot replies on X.
+1. **Preflight:** Resolve the currently authenticated Bankr signing wallet. Confirm chain ID **4663**, `ownerOf(tokenId) == signer`, and fresh HoodOS state (`activationEnabled()`, `isActive(tokenId)`, `activationCost()`, `paymentToken()`, `walletOf(tokenId)`). If already active, return the wallet details without swapping or spending. If owner mismatch or activation disabled, stop.
+2. **Check funding:** Read signer OCH balance, allowance to HoodOS and native ETH for gas. Compute the exact shortfall as `max(0, activationCost - tokenBalance)` in token base units. **Do not buy extra OCH if enough is already held**. Keep sufficient ETH for the swap, any required approval, activation, and a gas buffer.
+3. **Acquire shortfall when needed:** Use Bankr's supported swap/quote tools for **Robinhood Chain (4663)**, checking exact token contract addresses and the actual **minimum output after slippage**. Request an exact-output swap of the missing OCH when available; otherwise quote an exact-input swap whose guaranteed minimum output covers the shortfall, with fees and gas included. If the available ETH cannot safely cover the route and gas, there is no supported liquid route, the minimum output is too low, or slippage/price impact exceeds the user's stated limits or Bankr's protections, **do not execute**; explain what is missing. Do not invent a price, use cross-chain assets without explicit authorization, or choose an unrestricted swap. Have Bankr apply its normal spend authorization; never bypass a confirmation required by its wallet tools.
+4. **Wait and recheck:** After the swap is confirmed, reread OCH balance and activation conditions. Do not continue if the balance is below the **live** activation cost or if signer/owner changed.
+5. **Approve only if necessary:** If `allowance(owner, HoodOS) < activationCost`, call the live payment token's `approve(HoodOS, activationCost)` from the owner wallet via Bankr's supported transaction tool. Use **exact amount**, not unlimited approval. Respect any required authorization, await confirmation, and reread allowance. If already sufficient, skip this step.
+6. **Activate:** Recheck ownership and live cost, then call `HoodOS.activate(tokenId)` from the same owner wallet, subject to Bankr's required transaction authorization. Wait for a confirmed receipt. Stop if any transaction fails; do not retry financial actions blindly.
+7. **Verify:** Reread `isActive(tokenId)` and `walletOf(tokenId)`. Report verified result, final wallet address and observed transaction hashes. Say "activation pending" if chain confirmation has not occurred; never say "activated" on an unverified submit.
+
+**Conversation style:** Keep user prompts simple. Prefer a single brief readiness/cost summary when Bankr requires confirmation; otherwise run supported sequential steps after the user's activation request. If funding is insufficient, say how much ETH/OCH is missing rather than requesting a series of manual commands. Do not claim autonomous execution is available in every Bankr surface.
+
+**Bankr compatibility:** An installed skill provides instructions, not permission to spend. Only use the Bankr tools available in the active agent/runtime. Installation in an individual account does not automatically enable this skill for all public @bankrbot replies on X.
 
 ## References
 

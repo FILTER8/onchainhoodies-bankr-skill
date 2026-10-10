@@ -1,6 +1,6 @@
 # OnChainHoodies Bankr Skill
 
-A public skill for inspecting fully on-chain OnChainHoodies and preparing carefully authorized HoodOS activation on **Robinhood Chain (4663)**.
+A public skill for inspecting fully on-chain OnChainHoodies and completing Bankr-authorized HoodOS activation with optional OCH funding on **Robinhood Chain (4663)**.
 
 ## Install in Bankr
 
@@ -13,9 +13,9 @@ Bankr installs this skill to the Bankr account using it. Installation alone does
 - Inspect a specific Hoodie by token ID: current owner, token-bound wallet, deployment/activation state
 - Show Hoodies in the authenticated Bankr wallet when Bankr's NFT portfolio supports collection filtering
 - Check current OCH activation cost, token balance, token allowance, and native ETH for gas
-- Guide **explicitly authorized** ERC-20 approval and HoodOS activation through compatible Bankr wallet tools
+- Handle a single request such as **"Bankrbot, activate my Hoodie #351"**: check readiness, quote/swap for missing OCH if needed, approve exact allowance, activate, and verify through compatible Bankr tools
 
-No private keys. No automatic transactions. No automatic token purchases.
+No private keys. The activation request can initiate the full workflow, but Bankr must enforce all required confirmations, permissions, swap limits, and transaction security checks.
 
 ## Local read-only verification
 
@@ -31,7 +31,7 @@ The optional second argument is a comparison address; the skill itself does **no
 
 ## Important limitations
 
-A skill provides agent instructions; it does not create Bankr transaction-signing privileges. Read-only functions can be evaluated independently, but an activation requires Bankr support for sending both ERC-20 `approve` and HoodOS `activate` **from the actual NFT owner on chain 4663**, with explicit authorization. Publishing a repository does not automatically enroll it in Bankr's public catalog or enable the X bot's skills globally.
+A skill provides agent instructions; it does not create Bankr transaction-signing privileges. Read-only functions can be evaluated independently, but an activation requires Bankr support for sending both ERC-20 `approve` and HoodOS `activate` **from the actual NFT owner on chain 4663**, under Bankr's required authorization and transaction controls. Publishing a repository does not automatically enroll it in Bankr's public catalog or enable the X bot's skills globally.
 
 Contract details: [references/contracts.md](references/contracts.md). Integration notes: [references/bankr.md](references/bankr.md).
 

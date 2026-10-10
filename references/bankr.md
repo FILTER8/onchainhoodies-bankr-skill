@@ -28,3 +28,11 @@ Docs: https://docs.bankr.bot/wallet-api/sign/ and https://docs.bankr.bot/skills/
 4. Check already active path: it must refuse unnecessary spending.
 5. Test explicit approval/activation authorization with a wallet holding sufficient OCH and ETH. Confirm no transaction is sent without the user's permission.
 6. Test the @bankrbot X surface separately for installation/discovery and write permission.
+
+## Single-prompt activation (v0.2)
+
+User: `Bankrbot, activate my Hoodie #351`
+
+The skill may initiate the necessary OCH swap when the user's wallet has insufficient OCH, then exact ERC-20 approval and activation, without asking the user to issue three separate commands. This is **not** blanket approval to spend: use only the host's supported swap/sign/submit tools, respect its required permissions and confirmations, and honor user-defined spend/slippage limits. Avoid purchases when the wallet cannot afford the quote plus gas.
+
+If a reliable quote or a safe route is unavailable, or Bankr's host refuses a write operation, give the user the precise blocker rather than implying completion. Check the final on-chain activation state before announcing success.
