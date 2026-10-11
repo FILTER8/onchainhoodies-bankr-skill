@@ -42,3 +42,7 @@ If a reliable quote or a safe route is unavailable, or Bankr's host refuses a wr
 When the user says "activate my Hoodie" and the owner has 0 OCH, **do not end the action by asking whether they want to buy OCH**. Quote the missing OCH against existing ETH in the same Bankr session, reserve gas, and execute through the host's permitted trade mechanism (respecting its confirmations and limits). Only ask for follow-up when actual funding, quote availability or wallet security prevents completing the action. If a swap's status is uncertain, query the activity/receipt before attempting it again; use Bankr's idempotency key when available.
 
 Wallet-level spend limits and arbitrary-contract-call settings always take precedence over skill instructions. Official documentation: https://github.com/BankrBot/skills/blob/main/bankr/SKILL.md
+
+## v0.5 — delegated agent execution
+
+Bankr can submit `HoodWallet.execute` from a signer **different from the NFT owner** only when HoodOS grants authorization for the specific calldata. Verify the signer with Bankr host wallet context, check `HoodOS.canExecute`, simulate, follow host signing policy, and verify the result. See `references/delegation.md`. Never use the historical Bankr test EOA as a default or imply that installing the skill grants delegation.

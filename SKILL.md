@@ -1,6 +1,6 @@
 ---
 name: onchainhoodies
-description: "Interact with OnChainHoodies on Robinhood Chain using Bankr: inspect NFTs and ERC-6551 HoodWallets, activate Hoodies with OCH, read the live public collection API, discover HoodJourney milestones, and execute eligible milestone check-ins through the authorized HoodWallet. Use for \"show my Hoodies\", \"activate Hoodie #351\", \"tell me about the Hood\", \"show my Hoodie journey\", and \"collect a milestone\"."
+description: "Interact with OnChainHoodies on Robinhood Chain using Bankr: inspect NFTs and ERC-6551 HoodWallets, activate Hoodies with OCH, read the live public collection API, discover HoodJourney milestones, execute eligible milestone check-ins, and operate HoodWallets using current-owner authorization or time-limited HoodOS delegation. Use for \"show my Hoodies\", \"activate Hoodie #351\", \"tell me about the Hood\", \"show my Hoodie journey\", and \"collect a milestone\"."
 ---
 
 # OnChainHoodies for Bankr
@@ -47,10 +47,28 @@ Interpret **"Bankrbot, activate my Hoodie #351"** (or equivalent) as a request t
 
 **Bankr compatibility:** An installed skill provides instructions, not permission to spend. Only use the Bankr tools available in the active agent/runtime. Installation in an individual account does not automatically enable this skill for all public @bankrbot replies on X.
 
+## Delegated execution (v0.5)
+
+A Bankr signer **does not need to own the Hoodie** to operate its canonical HoodWallet when HoodOS delegation explicitly authorizes the exact requested operation. Treat delegation as **permission**, not ownership, and never assume that skill installation itself grants permission.
+
+For requests such as "use the Hoodie delegated to me" or "mint from Hoodie #336":
+
+1. Obtain the authenticated Bankr **transaction-signing address** on Robinhood Chain 4663; never assume it is the Hoodie owner or use the author's test address.
+2. Read `ownerOf(tokenId)`, `HoodOS.walletOf(tokenId)`, `HoodOS.isActive(tokenId)`, contract code at the wallet address, and delegation configuration. Use the on-chain `HoodDelegation` contract and `HoodOS.canExecute(...)` as final authorization, never only an API cached permission.
+3. Select target, exact native `value`, encoded calldata, and `operation=0`. Preflight `canExecute(wallet, tokenId, signer, target, value, data, 0)` **for those exact inputs** and simulate `HoodWallet.execute(target, value, data, 0)` from the Bankr signer. If either fails, stop.
+4. If the wallet pays for a mint/purchase, check **the HoodWallet native balance**, not the agent EOA's balance. Native ETH forwarded to the target comes from the HoodWallet's balance. The EOA normally pays outer gas. Never auto-fund a shortfall or alter call value without authorization.
+5. Submit via Bankr's normal wallet confirmation rules; wait for receipt; verify the resulting NFT owner / state / asset balance. Do not assume `msg.sender` means the EOA inside the target: it will be the HoodWallet.
+6. If the user asked only for inspection, never grant, revoke, spend, or execute.
+
+Granting or revoking a capability requires the **current Hoodie owner's own authorized transaction**, and is not performed by the delegate merely because they have execution permission. Grant through the published DelegateOS frontend or the exact HoodDelegation ABI. Full/open grants can transfer **all ERC-20s/NFTs** regardless of `maxNativeValue` (a per-execution native ETH ceiling, not a token allowance/cumulative budget). Prefer exact/selector grants and short expiries; never encourage blanket open access by default.
+
+For canonical addresses, ABI fragments, expiry and scope semantics, working verified examples, and security caveats, **read `references/delegation.md` before any delegated write.**
+
 ## References
 
 - `references/contracts.md`: addresses, ABI signatures, source-backed authorization and fees
 - `references/bankr.md`: installation, host-wallet limitations, transaction checks
+- `references/delegation.md`: delegated HoodWallet execution, read/grant/revoke, limits, and verified examples
 - `scripts/hoodie-info.mjs`: read-only local inspect tool
 
 ## Hood knowledge and milestones (v0.4)

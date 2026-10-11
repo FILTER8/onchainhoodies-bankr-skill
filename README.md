@@ -1,6 +1,6 @@
 # OnChainHoodies Bankr Skill
 
-A public skill for inspecting fully on-chain OnChainHoodies and completing Bankr-authorized HoodOS activation with optional OCH funding on **Robinhood Chain (4663)**.
+A public skill for inspecting fully on-chain OnChainHoodies, activating HoodWallets, and executing explicitly authorized owner or delegated-agent actions on **Robinhood Chain (4663)**.
 
 ## Install in Bankr
 
@@ -54,3 +54,13 @@ node scripts/hood-knowledge.mjs --help
 node scripts/hood-knowledge.mjs milestones
 node scripts/hood-knowledge.mjs journey 351
 ```
+
+## v0.5: HoodOS delegation
+
+Hoodie owners may grant temporary, scoped permission to another EOA (including an AI agent) without transferring their NFT. Use the **DelegateOS** UI to grant and revoke. The agent must derive its signing EOA from its **own Bankr session**, not from this repo. It then verifies the NFT, active canonical HoodWallet, valid delegation, and `HoodOS.canExecute` for the **exact proposed call**, simulates, and submits `HoodWallet.execute` using normal Bankr transaction approval.
+
+The tested Hoodie #336 flow included a successful delegated self-call and a wallet-funded `0.001 ETH` mint of 64 Faces #205 (transaction hashes and caveats in [references/delegation.md](references/delegation.md)). The signer did not own the Hoodie.
+
+Public delegation read endpoints: `https://api.onchainhoodies.xyz/v1/token/{id}/delegations` and `/history`. Index data can lag; use **on-chain authorization** for any write.
+
+**Security:** OPEN delegation can move tokens and NFTs from the HoodWallet. The native ETH cap is a per-call limit, not an ERC-20/NFT spending limit. Default to narrow permissions and short expiry, never prefill a developer/agent address.

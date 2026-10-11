@@ -13,6 +13,12 @@ Start with `GET /` or `GET /openapi.json` for the advertised API documentation a
 - `/v1/wallet/{address}/hoodies` — discovered wallet holdings
 - `/v1/holders`, `/v1/leaderboard`, `/v1/search` — holders/rankings/search
 
+## Delegation (indexed and read-only)
+
+- `/v1/token/{tokenId}/delegations` — indexed capabilities and status; current blockchain policy checks take precedence
+- `/v1/token/{tokenId}/delegations/history` — indexed grants and revocations
+- `/v1/hood/live` and `/v1/token/{tokenId}/memory` can include delegation grant/revoke events; these do **not** by themselves prove a later transaction was executed by a delegate
+
 ## HoodJourney
 
 - `/v1/token/{tokenId}/journey` — Hoodie journey history and context
