@@ -1,6 +1,6 @@
 ---
 name: onchainhoodies
-description: "Interact with OnChainHoodies on Robinhood Chain using Bankr: inspect NFTs and ERC-6551 HoodWallets, activate Hoodies with OCH, read the live public collection API, discover HoodJourney milestones, execute eligible milestone check-ins, and operate HoodWallets using current-owner authorization or time-limited HoodOS delegation. Use for \"show my Hoodies\", \"activate Hoodie #351\", \"tell me about the Hood\", \"show my Hoodie journey\", and \"collect a milestone\"."
+description: "Interact with OnChainHoodies on Robinhood Chain using Bankr: inspect NFTs and ERC-6551 HoodWallets, activate Hoodies with OCH, read the live public collection API, discover HoodJourney milestones, execute eligible milestone check-ins, and operate HoodWallets using current-owner authorization or time-limited HoodOS delegation, and generate preview-first 20x20 HoodiePunks art and plan HoodieStudio INK/Canvas publication. Use for \"show my Hoodies\", \"activate Hoodie #351\", \"tell me about the Hood\", \"show my Hoodie journey\", and \"collect a milestone\"."
 ---
 
 # OnChainHoodies for Bankr
@@ -90,3 +90,9 @@ For local read-only API inspection (Node 20+): `node scripts/hood-knowledge.mjs 
 - `references/api.md` — exact routes from uploaded Worker source
 - `references/hoodjourney.md` — source-verified account execution, contract addresses and safety checks
 - `scripts/hood-knowledge.mjs` — public API read-only tool
+
+## HoodiePunks artwork and HoodieStudio (v0.6)
+
+For "make a HoodiePunk", "create art with Hoodie #5500", "HoodieStudio", "Safe/Creative/Wild", or "publish art": **read `references/hoodiepunks-art.md`** for the creator's real 20x20 trait collection, correct layering/green-mask rules, preview-first modes, and `scripts/compose-hoodiepunk.mjs` usage. For any claiming, opening, approval or publication transaction **also read `references/hoodiestudio-transactions.md`**, derived from the HoodieStudio V4.2 skill provided by its creator; use the live verified contracts and its offline helper `scripts/hoodiestudio-artwork.mjs`.
+
+A skill does not automatically give Bankr a terminal, file-based preview renderer, NFT ownership, HoodOS delegation, or chain-writing privileges. If Bankr's X runtime cannot run the Node helper or display the generated SVG, state that limitation and return a concrete off-platform preview workflow rather than claim it rendered art. Do not treat a collection generator's `supply=10000` as an on-chain HoodieStudio supply. Do not publish, claim or fund on preview-only requests. For HoodOS-authorized delegation use **exact** live `canExecute` and outer `HoodWallet.execute` checks, not the source NFT owner's EOA equality rule or the distinct HoodieStudio draft-artist delegation mechanism. All spending remains bounded by user's actual authorization and Bankr's wallet policy.

@@ -64,3 +64,15 @@ The tested Hoodie #336 flow included a successful delegated self-call and a wall
 Public delegation read endpoints: `https://api.onchainhoodies.xyz/v1/token/{id}/delegations` and `/history`. Index data can lag; use **on-chain authorization** for any write.
 
 **Security:** OPEN delegation can move tokens and NFTs from the HoodWallet. The native ETH cap is a per-call limit, not an ERC-20/NFT spending limit. Default to narrow permissions and short expiry, never prefill a developer/agent address.
+
+## v0.6: HoodiePunks agent artwork + HoodieStudio
+
+Includes the user's **62 genuine 20x20 traits** in `assets/hoodiepunks_traits.json` and an offline generator that understands the collection's five-layer assembly, Robin-green masks and black-pixel output. Modes: **Safe** (traits), **Creative** (small surprise), **Wild** (more experimentation). Fixed Background plus a choice of Punk/eyes/Mouth/TOP. **Preview first, publish separately.**
+
+```bash
+node scripts/compose-hoodiepunk.mjs --mode creative --seed 5500 --out ./output/my-punk
+```
+
+Inspect `./output/my-punk.svg` and `.json`; output is offline-only. To plan on-chain creation, read [artwork guide](references/hoodiepunks-art.md) and [HoodieStudio V4.2 operations](references/hoodiestudio-transactions.md). The skill contains a copy of the HoodieStudio creator's offline `artwork.mjs` validation/planning helper under `scripts/hoodiestudio-artwork.mjs`; check the original creator's redistribution license before re-publishing this portion. Nothing here automatically mints a 10,000-piece collection: the traits are a **reference art library** and HoodieStudio publishes to a Canvas through its distinct contracts.
+
+For Bankr/X, use a short prompt such as: `@bankrbot With the OnChainHoodies skill, make a Creative HoodiePunk for delegated Hoodie #5500 and show a preview only.` Ability to produce SVG previews on X depends on the agent runtime; installing a skill doesn't add rendering tools.
