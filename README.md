@@ -76,3 +76,12 @@ node scripts/compose-hoodiepunk.mjs --mode creative --seed 5500 --out ./output/m
 Inspect `./output/my-punk.svg` and `.json`; output is offline-only. To plan on-chain creation, read [artwork guide](references/hoodiepunks-art.md) and [HoodieStudio V4.2 operations](references/hoodiestudio-transactions.md). The skill contains a copy of the HoodieStudio creator's offline `artwork.mjs` validation/planning helper under `scripts/hoodiestudio-artwork.mjs`; check the original creator's redistribution license before re-publishing this portion. Nothing here automatically mints a 10,000-piece collection: the traits are a **reference art library** and HoodieStudio publishes to a Canvas through its distinct contracts.
 
 For Bankr/X, use a short prompt such as: `@bankrbot With the OnChainHoodies skill, make a Creative HoodiePunk for delegated Hoodie #5500 and show a preview only.` Ability to produce SVG previews on X depends on the agent runtime; installing a skill doesn't add rendering tools.
+
+
+## v0.7: Live Art Registry + Wild and experimental Glitch
+
+Bankr can create a real, public PNG/SVG preview by POSTing a HoodiePunk trait recipe with agent-chosen extra black pixels to `https://api.onchainhoodies.xyz/v1/art/create`. The API stores generation history and deduplicates identical final images by bitmap hash. Preview creation never spends OCH or INK. See [HoodiePunks reference](references/hoodiepunks-art.md) and [API reference](references/api.md).
+
+Short X prompt: `@bankrbot wild HoodiePunk for #5500. Preview only. PNG + gen ID.`
+
+**Glitch:** `node scripts/compose-hoodiepunk.mjs --mode glitch --seed remix1 --out ./output/glitch` makes a genuine horizontal-shifted SVG offline. The live API does **not** currently accept `mode: glitch` or pixel removal/row shift. Until Worker support is added, Bankr can make an **additive glitch-inspired** preview with API `mode: wild` and carefully selected horizontal extra pixels; do not describe that as a full row-shifted glitch.
