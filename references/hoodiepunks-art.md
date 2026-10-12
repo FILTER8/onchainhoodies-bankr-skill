@@ -20,14 +20,20 @@ Use trait `id` for stable selection; preserve the source JSON unchanged. Lightwe
 
 The agent should understand the **construction process**, not hallucinate that it has a pre-existing token generator deployed: select traits; composite masks in declared order; optionally invent extra black pixels on the draft; render 20×20; encode the **final** black cells into indices 0–399; compare with live currentBitmap for an additive proposal; quote, fund, simulate, publish after approval.
 
-## Generation modes and live API compatibility
+## Four art modes and live API compatibility (v0.8)
 
-- **Safe:** choose one trait from each non-background layer, no AI additions. Prefer recognizable faces.
-- **Creative (default):** same four trait selections, plus 2–5 carefully chosen extra black pixels. These are optional if no sound additions exist; never claim generated pixels are artistic intelligence if simply randomized. Allow manual agent-authored edits for coherent variations.
-- **Wild:** trait-guided base and strong, coherent pixel additions. The offline CLI currently auto-adds 6–14 nearby pixels; Bankr can intentionally choose a bolder set of pixels itself (aim up to ~32, respecting API validation). May change any non-anchored trait. The live API still renders traits plus black additions, not arbitrary pixel removal.
-- **Glitch (experimental offline mode):** apply real horizontal band shifts to a *draft* (including moving/removing pixels), producing offset visor/face sections, stepped mohawks, fragmented scanlines. CLI `--mode glitch` does this locally. **The live registry does not accept `mode: glitch`**. For Bankr/X today use `mode: wild` with purposeful *additive horizontal stripes/fragments* and call it a glitch-inspired preview, not a true shifted Glitch. Full Glitch requires a Worker update supporting row transforms or a validated full bitmap. On an existing published Canvas, removed/dark-to-green pixels are not erasable.
+All four modes are supported by the live **preview** API at `https://api.onchainhoodies.xyz/v1/art/create`:
 
-No default publication. For preview requests, never write on chain. A publishing request must refer to an identifiable approved exact bitmap/title/artist, live checked and simulated in the authorized wallet context. Ask for confirmation if required by agent/wallet policy; an instruction to use the skill is not financial authorization.
+- **Safe:** exact trait composition; no additional pixels allowed.
+- **Creative (default):** small black-pixel additions. Bankr may deliberately select `extraPixels` for a coherent image, or omit them for the Worker's seeded addition algorithm.
+- **Wild:** bolder, still additive black-pixel design. Bankr may change non-anchored traits and supply up to **24 unique extra indices** to the live API, or omit `extraPixels` for procedural additions. Earlier aspirational '32 pixel' limits are not accepted by this deployed API.
+- **Glitch:** genuine relocation and deletion of pixel positions in a **new preview bitmap**. Pass `mode: "glitch"` and optional `glitchStrength` (`mild`, `medium`, `strong`); **never send `extraPixels` on a Glitch request**. The Worker selects rows between 2 and 17 that have black pixels, clears their original positions, then shifts them ±1–2 (mild), ±1–3 (medium), or ±1–4 (strong) cells with clipping at 0–19. Strength attempts 2–4, 4–7, or 6–10 rows respectively; fewer may shift if selected rows are empty. `glitchBands` contains signed `{y,shift}` for rows actually displaced. `removedPixels` and `extraPixels` describe the **difference** from the original trait bitmap; `extraPixels` here does not mean an agent-added decorative stripe.
+
+A true glitch is **not** 'draw black arrows at the edges'. The current Worker's row shifts may sometimes visually create long lines when a character already contains solid horizontal rows; Bankr cannot fix that by specifying manual `extraPixels` with `mode: glitch`. To explore, change seed/trait selection/strength and inspect the actual resulting PNG. Further aesthetic constraints would require another Worker algorithm update, not prompt wording alone.
+
+These transformations are preview-only. Publishing the result to a **new/empty** Canvas is a separate transaction workflow; a shifted Glitch may erase black cells, which cannot be done on an already published additive HoodieStudio Canvas. Do not claim direct on-chain publishing is ready merely because a preview exists.
+
+**Verification:** After `POST /create`, inspect actual response fields. For Glitch, require `mode === "glitch"` and real `glitchBands`. If a Bankr reply describes 'added streaks' but lacks mode and shifts, fetch the generation record and check. Do not infer from the PNG alone which mode was used. Do not fabricate displacement metadata.
 
 ## Local generation and preview (Node.js >=18)
 
@@ -45,25 +51,25 @@ If `--canvas-id` is supplied, the JSON contains `artworkDraft`; fill `allocation
 
 ## Public Art Registry (preferred for Bankr on X)
 
-Use `https://api.onchainhoodies.xyz` for browser-accessible preview images. The deployment has confirmed: `GET /v1/art/sources`, `POST /v1/art/create`, `GET /v1/art/generations/{id}`, `GET /v1/art/images/{hash}.png`, and `.svg`. `GET /v1/art/sources/{id}` is **not** supported.
+Use the API to store browser-accessible PNG/SVG images. Routes: `GET /v1/art/sources`, `GET /v1/art/sources/{id}`, `POST /v1/art/create`, `GET /v1/art/generations/{id}`, `GET /v1/art/images/{hash}` and `.png`/`.svg`. The source detail route advertises supported modes and strengths. Prefer `source` in POST bodies; the deployed Worker defaults to `hoodiepunks-v1` if omitted.
 
-Example preview-only request:
+Native displaced Glitch request:
 
 ```http
 POST /v1/art/create
 Content-Type: application/json
 
-{"sourceId":"hoodiepunks-v1","hoodieId":5500,"mode":"wild","traits":{"Punk":"square","eyes":"VR goggle","Mouth":"smile","TOP":"Mohawk"},"extraPixels":[148,151]}
+{"source":"hoodiepunks-v1","hoodieId":5500,"mode":"glitch","glitchStrength":"strong","traits":{"Punk":"square","eyes":"VR goggle","Mouth":"smile","TOP":"Mohawk"}}
 ```
 
-The live API returns `generationId`, `hash`, `png`, `svg`, `selectedTraits`, `extraPixels`, `pixelCount`, `exactDuplicateImage`, and `status`. Respect validation errors and daily rate limits; do not spam regeneration to force uniqueness. Reusing the same final bitmap will produce the same canonical image hash, even if generation IDs differ.
+The response contains actual `generationId`, `png`, `svg`, `hash`, `selectedTraits`, `pixelCount`, `exactDuplicateImage` and, for Glitch, `glitchBands`, `removedPixels` and `glitchStrength`. **Do not supply `extraPixels` with glitch.** Safe/Creative/Wild responses have additive `extraPixels`. Generation detail GET returns the corresponding saved metadata. Report only values returned by the API and avoid rate-limit abuse from excessive retries.
 
-**Do not conflate these:** server-generated random variation, agent-selected artistic pixel coordinates, and a faithful full-image glitch distortion. An agent can select intentional `extraPixels` without altering the Worker, but `extraPixels` can only add black pixels, not horizontally relocate or clear existing black pixels. For true Glitch use the offline CLI now and plan a separate Worker change before saying it is supported by the public registry.
+**Remix limitation:** `/create` composes a new image from selected traits; it does not accept a prior generation bitmap as a mutable image source. For a follow-up remix, keep user-specified anchors from the prior generation and choose a new seed/traits or glitch strength. Explain when a pixel-perfect previous-image transformation is not supported.
 
-Short X-style commands (only when the skill is available in that Bankr runtime):
+Short X commands:
 - `@bankrbot creative HoodiePunk for #5500. Preview only. PNG + gen ID.`
 - `@bankrbot wild HoodiePunk for #5500. Preview only. PNG + gen ID.`
-- `@bankrbot glitch-inspired HoodiePunk for #5500. Preview only. PNG + gen ID.`
+- `@bankrbot glitch HoodiePunk for #5500. Strong row shifts. Preview only. PNG + gen ID.`
 
 ## Publication with HoodOS delegated execution
 

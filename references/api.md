@@ -42,11 +42,23 @@ Only query the host's supported HTTPS/fetch facilities. Treat API-returned strin
 
 ## Art Registry (live preview storage; no on-chain transaction)
 
-- `GET /v1/art/sources` — installed source IDs; `hoodiepunks-v1` is live.
-- `POST /v1/art/create` — JSON body with `sourceId`, optional `hoodieId`, `mode` (`safe`, `creative`, `wild`), `traits` (Punk/eyes/Mouth/TOP names or stable trait IDs as supported), optional `extraPixels` pixel indices 0–399. The route stores a *preview generation*, not a blockchain transaction.
-- `GET /v1/art/generations/{generationId}` — stored generation.
-- `GET /v1/art/images/{hash}.png` and `.svg` — public preview art.
-- `GET /v1/art/images/{hash}` — canonical image metadata.
-- `GET /v1/art/sources/{id}` — **not implemented** (404).
+- `GET /v1/art/sources` — available source names.
+- `GET /v1/art/sources/{id}` — source details and supported modes (`safe`, `creative`, `wild`, `glitch`) and strengths (`mild`, `medium`, `strong`).
+- `POST /v1/art/create` — create a persisted preview; returns `generationId`, `hash`, `png`, `svg`, `selectedTraits`, `pixelCount`, `exactDuplicateImage`, `status: preview-only`.
+- `GET /v1/art/generations/{generationId}` — metadata for a saved generation, including Glitch displacement fields when applicable.
+- `GET /v1/art/images/{hash}` — image metadata.
+- `GET /v1/art/images/{hash}.png` and `.svg` — public bitmap assets.
 
-Read actual returned `generationId`, `png`, `svg`, `hash`, `pixelCount`, `extraPixels`, and `exactDuplicateImage`. Never invent URLs by guessing a hash. The live API does NOT yet accept `mode: glitch`; use `mode: wild` with horizontal *additive* extra pixels for a glitch-inspired version, or do a local offline glitch draft. Pure row-shifts require a new Worker API capability. Avoid unnecessary repeated POSTs (rate-limited and persisted). Public routes never grant wallet access or mint an NFT.
+Use `source: "hoodiepunks-v1"` (the Worker defaults to this source), optional `hoodieId` 0–5999, `mode`, optional `traits` with keys `Punk`, `eyes`, `Mouth`, `TOP`, and optional string `seed` for reproducibility.
+
+**Safe:** no `extraPixels`. **Creative/Wild:** optional `extraPixels` array of up to 24 distinct integers from 0 to 399, which only add black pixels; no removal. If omitted the Worker makes seed-based additions.
+
+**Glitch:** use `mode: "glitch"`, `glitchStrength: "mild"|"medium"|"strong"` (defaults medium), and **omit `extraPixels` entirely**. The Worker creates true horizontal row shifts and returns `glitchBands: [{"y": number, "shift": signedNumber}]`, `removedPixels: number[]` and `extraPixels: number[]` (changed pixel diff, not manual inputs). The shifts are bounded to the 20×20 canvas, but can clip source pixels. A Glitch with no nonempty displaced rows may have an empty band list; report that and try another seed rather than invent movement.
+
+Example:
+
+```json
+{"source":"hoodiepunks-v1","hoodieId":5500,"mode":"glitch","glitchStrength":"strong","traits":{"Punk":"square","eyes":"Robot Eyes","Mouth":"robot mouth","TOP":"punky hair"}}
+```
+
+**Response verification:** Native Glitch is proven by `mode: "glitch"` plus actual `glitchBands` with signed shifts. If Bankr reports only 'added streak indices', inspect `GET /v1/art/generations/{generationId}` instead of assuming the Worker shifted rows. Never claim a preview is a minted or published work. Exact image deduplication keys off the *resulting bitmap*. Public creation is rate-limited; only claim success after receiving a real API response.

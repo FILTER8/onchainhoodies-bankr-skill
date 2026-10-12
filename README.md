@@ -78,10 +78,27 @@ Inspect `./output/my-punk.svg` and `.json`; output is offline-only. To plan on-c
 For Bankr/X, use a short prompt such as: `@bankrbot With the OnChainHoodies skill, make a Creative HoodiePunk for delegated Hoodie #5500 and show a preview only.` Ability to produce SVG previews on X depends on the agent runtime; installing a skill doesn't add rendering tools.
 
 
-## v0.7: Live Art Registry + Wild and experimental Glitch
+## v0.8: Live four-mode Art Registry
 
-Bankr can create a real, public PNG/SVG preview by POSTing a HoodiePunk trait recipe with agent-chosen extra black pixels to `https://api.onchainhoodies.xyz/v1/art/create`. The API stores generation history and deduplicates identical final images by bitmap hash. Preview creation never spends OCH or INK. See [HoodiePunks reference](references/hoodiepunks-art.md) and [API reference](references/api.md).
+Bankr can create public HoodiePunk previews through `POST https://api.onchainhoodies.xyz/v1/art/create`. The API stores canonical images in R2 and generation records in D1, with exact-image deduplication by final 20x20 bitmap. Preview generation is **off-chain**, independent of the user's HoodWallet authority.
 
-Short X prompt: `@bankrbot wild HoodiePunk for #5500. Preview only. PNG + gen ID.`
+| Mode | Meaning | API input |
+|---|---|---|
+| Safe | Exact source trait composition | `"mode":"safe"` |
+| Creative | Subtle black-pixel additions | `"mode":"creative"`, optional `extraPixels` |
+| Wild | Stronger black-pixel additions | `"mode":"wild"`, optional `extraPixels` |
+| Glitch | Real horizontal row displacement and removal | `"mode":"glitch"`, optional `glitchStrength` |
 
-**Glitch:** `node scripts/compose-hoodiepunk.mjs --mode glitch --seed remix1 --out ./output/glitch` makes a genuine horizontal-shifted SVG offline. The live API does **not** currently accept `mode: glitch` or pixel removal/row shift. Until Worker support is added, Bankr can make an **additive glitch-inspired** preview with API `mode: wild` and carefully selected horizontal extra pixels; do not describe that as a full row-shifted glitch.
+True Glitch is different from horizontal black streaks. In Glitch, the Worker clears selected original rows and shifts their occupied pixels by signed offsets; the response exposes `glitchBands` and `removedPixels`. The API rejects `extraPixels` in Glitch mode. Use `glitchStrength: "mild"`, `"medium"`, or `"strong"` (default medium). The result is a new draft, **not automatically a legal additive edit to an existing on-chain Canvas**.
+
+Example live request:
+
+```bash
+curl -sS -X POST https://api.onchainhoodies.xyz/v1/art/create \
+  -H 'content-type: application/json' \
+  -d '{"source":"hoodiepunks-v1","hoodieId":5500,"mode":"glitch","glitchStrength":"strong","traits":{"Punk":"square","eyes":"VR goggle","Mouth":"robot mouth","TOP":"punky hair"}}'
+```
+
+Short X prompt: `@bankrbot glitch HoodiePunk for #5500. Strong horizontal shifts. Preview only. PNG + gen ID.`
+
+For this request, Bankr **must actually send `mode: glitch`**, verify `glitchBands` in the server response, and report the server-issued PNG + generation ID. `mode: wild` with hand-picked streak indices does **not** count as native Glitch. See [art rules](references/hoodiepunks-art.md) and [API reference](references/api.md). Bankr may need to reload this skill to use the updated instructions; skill installation alone does not guarantee HTTP tool access or globally enable public X interactions.

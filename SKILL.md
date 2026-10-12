@@ -98,12 +98,29 @@ For "make a HoodiePunk", "create art with Hoodie #5500", "HoodieStudio", "Safe/C
 Prefer the live Art Registry API at `https://api.onchainhoodies.xyz/v1/art/create` and return the public PNG URL + generation ID from its actual response. A skill does not automatically give Bankr a terminal, file-based renderer, NFT ownership, HoodOS delegation, or chain-writing privileges. If the agent cannot make HTTP POST calls, state that limitation rather than claim a preview exists. Do not treat a collection generator's `supply=10000` as an on-chain HoodieStudio supply. Do not publish, claim or fund on preview-only requests. For HoodOS-authorized delegation use **exact** live `canExecute` and outer `HoodWallet.execute` checks, not the source NFT owner's EOA equality rule or the distinct HoodieStudio draft-artist delegation mechanism. All spending remains bounded by user's actual authorization and Bankr's wallet policy.
 
 
-## Live Art Registry and agent-authored remixes (v0.7)
+## Live Art Registry: four modes and true Glitch (v0.8)
 
-For short X instructions such as `@bankrbot wild HoodiePunk for #5500. Preview only. PNG + gen ID.` use the public registry workflow in `references/hoodiepunks-art.md` and `references/api.md`:
+For pixel-art requests, **read `references/hoodiepunks-art.md` and `references/api.md` before composing a request**. `POST https://api.onchainhoodies.xyz/v1/art/create` creates a publicly viewable PNG/SVG preview, **not** an on-chain transaction. The live Worker supports `safe`, `creative`, `wild`, and **`glitch`**. Never claim images were generated without a successful API response.
 
-1. Choose valid source traits (prefer stable IDs), compose their green clearing masks in order, and select *intentional* extra black pixels when creative/wild is requested. An agent-generated pixel list differs from the server's seeded procedural additions.
-2. Send `POST /v1/art/create` with `sourceId: hoodiepunks-v1`, `hoodieId`, `mode: safe|creative|wild`, `traits`, and optional `extraPixels` (0–399). On a remix, use the last *identified* preview as inspiration but never assume the runtime has access to X chat history; request a PNG, generation ID, or selected traits if context is missing.
-3. Only report success if the API returns a `generationId` and `png` URL; include `exactDuplicateImage`, `pixelCount`, and `extraPixels` when returned. An HTTP response is a preview record, not blockchain publication.
-4. Do not claim Glitch is an accepted API mode: **the live Worker currently accepts only safe, creative, and wild.** For horizontal glitch accents that only add pixels, submit `mode: wild` with deliberate horizontal `extraPixels`, and clearly label it an *additive glitch-inspired preview*. For genuine horizontal row displacement/tears involving removal or masking, use the offline `--mode glitch` generator for local previews only; it cannot yet be registered faithfully through `/v1/art/create` until the Worker adds a validated glitch transform or full-bitmap intake. Do not silently substitute a different image.
-5. Preview-only requests NEVER claim INK, activate wallets, approve OCH, open Canvas, sign, or publish. Do not confuse creative freedom on a draft with the ability to erase on-chain published black pixels.
+- **Safe:** exact trait composition; no additions.
+- **Creative:** small intentional black-pixel additions. If supplied, `extraPixels` chooses precise indices 0–399; otherwise the Worker generates seeded additions.
+- **Wild:** stronger trait-led additions and freely varied non-anchored traits. It is still additive: no movement or erasure of existing trait pixels.
+- **Glitch:** *true horizontal row displacement*, not additive streaks. Submit `mode: "glitch"` and optional `glitchStrength: "mild" | "medium" | "strong"`; **do not supply `extraPixels`**. The Worker chooses occupied rows, clears original row positions, then shifts those row pixels left/right (clipping at 20-pixel boundaries). Its response reports `glitchBands` with `{y,shift}`, `removedPixels`, and `extraPixels` representing the final bitmap diff, not instructions from the agent. `glitchStrength: "strong"` distorts more rows and permits larger shifts. Bankr may choose seed and traits, but does not choose displaced row coordinates through the current API.
+
+**Required response verification for Glitch:** report a true Glitch only if the actual response says `mode: "glitch"` and contains `glitchBands` with signed shifts. If only `extraPixels`/streak indices exist, the request may have run Wild or another additive pathway; fetch `GET /v1/art/generations/{generationId}` to verify or report uncertainty. Do not fabricate `glitchBands`, movement, removed pixels, or a success claim. Ask for generation ID if a remix cannot be resolved from available conversation context.
+
+For a remix, identify the previous preview's traits and anchors, then choose the next mode. A `glitch` request reconstructs the selected trait base and applies new random displacement; **it does not take the previous final image as input**. If the user requests pixel-exact remix of a stored image, explain that the current `/create` route cannot accept an arbitrary prior bitmap. To change the appearance choose alternate traits/seed/glitchStrength.
+
+One documented request:
+
+```json
+{"source":"hoodiepunks-v1","hoodieId":5500,"mode":"glitch","glitchStrength":"strong","traits":{"Punk":"square","eyes":"VR goggle","Mouth":"robot mouth","TOP":"punky hair"}}
+```
+
+For any preview request: **no INK claim, activation, OCH approval, wallet execution, NFT mint or on-chain publish**. A Glitch preview may remove bits that are already published on a Canvas; never present a full displaced bitmap as an additive edit of that Canvas. Publishing requires live state, authority, exact quote, and separate user approval as described in `references/hoodiestudio-transactions.md`.
+
+Short X requests (when Bankr supports this skill and HTTP POST):
+
+- `@bankrbot wild HoodiePunk for #5500. Preview only. PNG + gen ID.`
+- `@bankrbot glitch HoodiePunk for #5500. Strong horizontal shifts. Preview only. PNG + gen ID.`
+- `@bankrbot glitch remix #5500. Change traits freely. Preview only. PNG + gen ID.`
