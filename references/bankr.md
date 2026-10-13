@@ -46,3 +46,7 @@ Wallet-level spend limits and arbitrary-contract-call settings always take prece
 ## v0.5 — delegated agent execution
 
 Bankr can submit `HoodWallet.execute` from a signer **different from the NFT owner** only when HoodOS grants authorization for the specific calldata. Verify the signer with Bankr host wallet context, check `HoodOS.canExecute`, simulate, follow host signing policy, and verify the result. See `references/delegation.md`. Never use the historical Bankr test EOA as a default or imply that installing the skill grants delegation.
+
+## v0.9 — Buying and listing with HoodOS
+
+Read `references/marketplace.md` before acting on buy/list/cancel/reprice requests. BuyOS and ListingOS are existing **human-facing** modules. Bankr's own purchase/sale tools and `HoodWallet.execute` are not automatically interchangeable with human ERC-1271 owner-signed Seaport listings. Use only available authenticated Bankr tools, verify exact delegation for wallet writes, and refer owner signatures to the human ListingOS interface when no separately verified authorized signing flow exists.

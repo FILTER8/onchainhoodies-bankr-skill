@@ -1,6 +1,6 @@
 ---
 name: onchainhoodies
-description: "Interact with OnChainHoodies on Robinhood Chain using Bankr: inspect NFTs and ERC-6551 HoodWallets, activate Hoodies with OCH, read the live public collection API, discover HoodJourney milestones, execute eligible milestone check-ins, and operate HoodWallets using current-owner authorization or time-limited HoodOS delegation, and generate public Art Registry PNG/SVG HoodiePunks previews (Safe, Creative, Wild, experimental Glitch) and plan HoodieStudio INK/Canvas publication. Use for \"show my Hoodies\", \"activate Hoodie #351\", \"tell me about the Hood\", \"show my Hoodie journey\", and \"collect a milestone\"."
+description: "Interact with OnChainHoodies on Robinhood Chain using Bankr: inspect NFTs and ERC-6551 HoodWallets, activate Hoodies with OCH, read the live public collection API, discover HoodJourney milestones, execute eligible milestone check-ins, and operate HoodWallets using current-owner authorization or time-limited HoodOS delegation, and generate public Art Registry PNG/SVG HoodiePunks previews (Safe, Creative, Wild, experimental Glitch) plan HoodieStudio INK/Canvas publication, and guide buying, listing, price changes, and cancellation of NFTs owned by HoodWallets using HoodOS BuyOS and ListingOS. Use for \"show my Hoodies\", \"activate Hoodie #351\", \"tell me about the Hood\", \"show my Hoodie journey\", and \"collect a milestone\"."
 ---
 
 # OnChainHoodies for Bankr
@@ -64,11 +64,23 @@ Granting or revoking a capability requires the **current Hoodie owner's own auth
 
 For canonical addresses, ABI fragments, expiry and scope semantics, working verified examples, and security caveats, **read `references/delegation.md` before any delegated write.**
 
+## HoodOS marketplace: BuyOS and ListingOS (v0.9)
+
+For requests to buy, list, change the asking price, or cancel a listing for an NFT held by a Hoodie, **read `references/marketplace.md` first**. The human-facing tools already exist:
+
+- **BuyOS:** `https://onchainhoodies.xyz/hoodos/buyos` (confirm current published route before directing users).
+- **ListingOS:** `https://onchainhoodies.xyz/hoodos/listingos`.
+
+**Use the existing HoodOS experience; do not invent marketplace contracts or rebuild Seaport orders.** ListingOS has successfully prepared and submitted an OpenSea listing, retrieved active listings, and cancelled one via the canonical HoodWallet; this does **not** imply Bankr has authenticated web sessions or has executed those flows itself.
+
+Distinguish **human owner signing** from **Bankr agent execution**: in the tested ListingOS flow, a connected *human owner* signs Seaport EIP-712 data and the HoodWallet's ERC-1271 verifies it; the owner-funded outer `HoodWallet.execute` handles on-chain NFT approval/cancellation. A delegated Bankr EOA cannot impersonate that owner's signature. Agents may transact only through genuinely available Bankr capabilities and exact on-chain `HoodOS.canExecute` delegation, with user consent and simulation. Never call a purchase or listing complete without receipts/marketplace verification. Changing price is cancel-old-first, then create/sign a new listing; cancellation alone does not create a replacement.
+
 ## References
 
 - `references/contracts.md`: addresses, ABI signatures, source-backed authorization and fees
 - `references/bankr.md`: installation, host-wallet limitations, transaction checks
 - `references/delegation.md`: delegated HoodWallet execution, read/grant/revoke, limits, and verified examples
+- `references/marketplace.md`: BuyOS/ListingOS human flows, Bankr execution boundaries, listing and cancellation safety
 - `scripts/hoodie-info.mjs`: read-only local inspect tool
 
 ## Hood knowledge and milestones (v0.4)

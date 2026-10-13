@@ -1,6 +1,6 @@
 # OnChainHoodies Bankr Skill
 
-A public skill for inspecting fully on-chain OnChainHoodies, activating HoodWallets, and executing explicitly authorized owner or delegated-agent actions on **Robinhood Chain (4663)**.
+A public skill for inspecting fully on-chain OnChainHoodies, activating HoodWallets, guiding BuyOS/ListingOS NFT trades, and executing explicitly authorized owner or delegated-agent actions on **Robinhood Chain (4663)**.
 
 ## Install in Bankr
 
@@ -14,6 +14,8 @@ Bankr installs this skill to the Bankr account using it. Installation alone does
 - Show Hoodies in the authenticated Bankr wallet when Bankr's NFT portfolio supports collection filtering
 - Check current OCH activation cost, token balance, token allowance, and native ETH for gas
 - Handle a single request such as **"Bankrbot, activate my Hoodie #351"**: check readiness, quote/swap for missing OCH if needed, approve exact allowance, activate, and verify through compatible Bankr tools
+- Explain and direct holders to **BuyOS** for HoodWallet NFT purchases and **ListingOS** for NFT listings, changing price, and cancelling listings on OpenSea
+- Evaluate whether a Bankr agent can execute a proposed NFT action with its **actual wallet tools and exact HoodOS delegation**, without pretending that it can sign on behalf of the human owner
 
 No private keys. The activation request can initiate the full workflow, but Bankr must enforce all required confirmations, permissions, swap limits, and transaction security checks.
 
@@ -102,3 +104,15 @@ curl -sS -X POST https://api.onchainhoodies.xyz/v1/art/create \
 Short X prompt: `@bankrbot glitch HoodiePunk for #5500. Strong horizontal shifts. Preview only. PNG + gen ID.`
 
 For this request, Bankr **must actually send `mode: glitch`**, verify `glitchBands` in the server response, and report the server-issued PNG + generation ID. `mode: wild` with hand-picked streak indices does **not** count as native Glitch. See [art rules](references/hoodiepunks-art.md) and [API reference](references/api.md). Bankr may need to reload this skill to use the updated instructions; skill installation alone does not guarantee HTTP tool access or globally enable public X interactions.
+
+## v0.9: BuyOS and ListingOS marketplace integration
+
+HoodOS already includes human-facing tools to buy NFTs into a HoodWallet and list a HoodWallet-owned ERC-721 through OpenSea. **Use these modules instead of deploying new marketplace contracts:**
+
+- **BuyOS**: `https://onchainhoodies.xyz/hoodos/buyos` (verify published path).
+- **ListingOS**: `https://onchainhoodies.xyz/hoodos/listingos`.
+- ListingOS can show active orders as NFT cards, cancel a selected listing on-chain and change price by cancelling the original order *before* preparing a fresh owner-signed listing.
+
+The working ListingOS flow uses OpenSea's Listing Creation Actions, EIP-712 Seaport orders, ERC-1271 validation of the **human owner's signature** by HoodWallet, and `HoodWallet.execute` for required approvals and cancellations. Bankr cannot simply reuse this human browser signing experience as an agent. Agent writes require supported Bankr capabilities, the authenticated Bankr signing EOA, correct chain, live NFT/account checks and exact `HoodOS.canExecute` authorization; do not assume an agent may sign an owner's listing.
+
+Read [references/marketplace.md](references/marketplace.md) for decision paths, safety and acceptance tests. Existing activation, art registry, HoodieStudio, delegation and other capabilities remain unchanged.
