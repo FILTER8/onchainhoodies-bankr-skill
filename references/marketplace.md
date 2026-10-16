@@ -24,10 +24,48 @@
 5. Verify `startTime` and `endTime`: the order must match the selected preset, not OpenSea's older default 30 days (or prior accidental multi-year expiration). ListingOS may modify OpenSea's original endTime and recompute the order hash. Sign **only the final returned Seaport EIP-712 `OrderComponents` with the final counter and timestamps**, never the original OpenSea Actions 30-day payload. Request a fresh order if expired.
 6. Inspect `approval`. If non-null, use the Bankr-host-supported transaction tool to call `HoodWallet.execute(nftContract,0,approval.data,0)` from the authenticated signer, after verifying the operator is the conduit obtained on-chain from the returned conduit key. Simulate, obey host confirmations, await receipt and reread approval. `setApprovalForAll` is broad; never approve an unexpected operator.
 7. Sign the final Seaport 1.6 typed-data payload using the **actual Hoodie-owner Bankr signing EOA**. Verify `HoodWallet.isValidSignature(digest, signature) == 0x1626ba7e`, including through `/api/listingos/check-signature` when supported. Mere delegation does not pass this check.
-8. **`POST /api/listingos/submit`** with the freshly prepared `parameters`, `counter`, `orderHash`, `seaport`, NFT identity, Hoodie ID and EIP-712 signature. Before submitting, recheck seller, price, all recipients, exact duration and active ownership. The backend validates signature and reports `submittedToOpenSea` / `activeConfirmed`; `submittedToOpenSea` alone does not prove active indexing. Verify via order lookup or marketplace UI and report any indexing lag accurately.
+8. **`POST /api/listingos/submit`** with the exact, complete client payload below. Copy the entire `parameters` object **directly** from the successful `/prepare` result. Preserve all offer/consideration items, `totalOriginalConsiderationItems`, times, zone, zoneHash, conduitKey, salt, addresses and numeric strings; do not reconstruct it from a summary, browser minified bundle, or a previous order. The backend obtains wallet from Hoodie ID and checks ownership independently; `wallet` is an optional informational top-level field, **not a substitute for `hoodieId`**.
+
+   ```json
+   {
+     "hoodieId": "351",
+     "tokenId": "5",
+     "contract": "0x2eE6305804dD94F7ff695C5Ab1f3AE805f317653",
+     "seaport": "0x0000000000000068F116a894984e2DB1123eB395",
+     "counter": "<counter from prepare>",
+     "orderHash": "<orderHash from prepare>",
+     "parameters": { "offerer": "<HoodWallet>", "zone": "<address>", "offer": [], "consideration": [], "orderType": 0, "startTime": "<seconds>", "endTime": "<seconds>", "zoneHash": "<bytes32>", "salt": "<uint256 string>", "conduitKey": "<bytes32>", "totalOriginalConsiderationItems": 0 },
+     "signature": "<hex EIP-712 signature>"
+   }
+   ```
+
+   **Schema example only:** the empty arrays and zero placeholder above are NOT a valid order. Replace `parameters` with the entire actual `/prepare.parameters` object verbatim; `counter`, `orderHash`, and `seaport` must match that same response. Never submit placeholders, missing fields, stale orders, or a different NFT. The route itself requires `hoodieId`, `tokenId`, `contract` (falls back to a configured default but always send it), `seaport`, `counter`, `orderHash`, `parameters`, and `signature`; it does not consume the optional top-level `wallet` value. Before submitting, recheck seller, price, all recipients, exact duration and active ownership. Backend reports `submittedToOpenSea` and `activeConfirmed`; `submittedToOpenSea` alone does not prove active indexing. Verify via order lookup or marketplace UI and report any indexing lag accurately.
 9. Return listing link, exact expiration, order hash, payout breakdown, approval transaction hash (if any), and whether marketplace status was independently confirmed. Don't label a prepared/validated/signed order as "live".
 
 **Host limitations:** Installing this skill does not confer Wallet API signing permissions, authenticated web sessions, OpenSea API credentials or public X bot write access. The ListingOS backend holds its own OpenSea API key; never request or expose it. Use Bankr's supported calls and wallet policy, with the user's authorization for actual transactions.
+
+
+## Payment token quick reference
+
+- Robinhood Chain `4663`: native ETH = `0x0000000000000000000000000000000000000000` (Seaport consideration item type 0). USDG = `0x5fc5360d0400a0fd4f2af552add042d716f1d168` (item type 1).
+- On current OpenSea collection configuration, **64 Faces** (`0xc8e36ae47246e5943da2b228fbaff1fb27a473b0`) and **8x8portrait** (`0x2eE6305804dD94F7ff695C5Ab1f3AE805f317653`) have required **USDG** in completed tests. Specify `currency: "USDG"` immediately for these collections; do not try ETH first. For other collections do not guess; inspect the collection policy / preparation result, and stop on unsupported currency.
+- A 10 USDG display price is `"priceAmount":"10"`, **not** the raw base-unit integer. Never assume USDG uses 18 decimals.
+
+## Exact EIP-712 signing envelope
+
+For an agent-owned Hoodie only, construct the signature using the final `/prepare` response: `domain = {name:"Seaport", version:"1.6", chainId:4663, verifyingContract: <the returned Seaport address>}`; primary type `OrderComponents`. Use the official Seaport 1.6 field definitions (`OfferItem`, `ConsiderationItem`, `OrderComponents`). The signed `OrderComponents` contains `counter` alongside the Seaport order parameters, **excluding** `totalOriginalConsiderationItems` (which belongs to Seaport submission `OrderParameters`, not the EIP-712 struct). All arrays, numeric values, fees, salt and timestamps must match `/prepare`. Compute EIP-712 digest and verify ERC-1271 magic `0x1626ba7e` from the canonical HoodWallet before sending `/submit`. Do **not** remove `totalOriginalConsiderationItems` from the full `/submit.parameters` object.
+
+## Fast path for short social / X requests
+
+When responding through an authenticated Bankr X-capable session with the skill installed and working transaction tools, minimize exploratory calls. X timelines can have shorter context, call budgets and weaker session continuity than private terminal chats; this is an operational guidance, **not** proof that X wallet signing is enabled.
+
+1. Extract Hoodie ID, NFT contract + token ID, price, and duration from the current instruction. If omitted, apply the documented `7d` preset for duration and royalty `ON`. For **explicitly requested** `1h`, use `durationSeconds:3600`; `1d` = `86400`. For 8x8portrait and 64 Faces use USDG directly. Never invent price, NFT identity or permission.
+2. In one compact preflight, resolve authenticated signing wallet and chain, check `Hoodie.ownerOf`, canonical `HoodWallet`, NFT owner and whether the contract-wallet signer can pass ERC-1271. Stop if the account is merely delegated; no off-chain signing shortcut.
+3. POST `/api/listingos/prepare` with `hoodieId`, `contract`, `tokenId`, `currency`, `priceAmount`, `durationSeconds` and `useCreatorFee:true`. If the six known presets are already in this installed skill, no need for an extra GET just to rediscover them; GET on API version mismatch.
+4. Check entire response: actual expiry, currency, recipients, royalty, seller proceeds, order hash/counter, existing approval. If approval required, call authorized `HoodWallet.execute()` and verify receipt. Generate signature on **final** parameters, validate ERC-1271, and POST complete schema shown above. Report live status only after confirmation.
+5. If a host timeout, wallet authorization, HTTP/schema failure, or missing tool prevents completion, **stop clearly** with the last verified stage and exact error; do not improvise a replacement wallet, skip verification, or assert a listing exists. Never hardcode historic Hoodie #351 EOA as current signing authority.
+
+Social posts cannot confer extra wallet rights. A skill installed in private terminal does not guarantee the public `@bankrbot` X agent has the same skill, wallet or write permissions.
 
 ## Cancellation / price change
 

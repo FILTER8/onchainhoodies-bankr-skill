@@ -66,7 +66,7 @@ For canonical addresses, ABI fragments, expiry and scope semantics, working veri
 
 ## HoodOS marketplace: autonomous ListingOS (v1.0)
 
-For NFT listings, approvals, cancellations, prices, durations and royalties, **read `references/marketplace.md` before acting**. BuyOS: `https://onchainhoodies.xyz/hoodos/buyos`; ListingOS: `https://onchainhoodies.xyz/hoodos/listingos`.
+For NFT listings, approvals, cancellations, prices, durations and royalties, **read `references/marketplace.md` before acting**, including its exact `/submit` JSON schema, EIP-712 domain, collection-specific USDG rules, and short X/social execution path. BuyOS: `https://onchainhoodies.xyz/hoodos/buyos`; ListingOS: `https://onchainhoodies.xyz/hoodos/listingos`.
 
 **Agent-owned Hoodie: proven.** When the authenticated Bankr signing EOA equals the live `ownerOf(hoodieId)`, it may EIP-712-sign the Seaport order with that EOA; the canonical HoodWallet (Seaport offerer) verifies it via ERC-1271. Hoodie #351 demonstrated OpenSea publication and cancellation through this path. Use the live ListingOS API, not Bankr's ordinary EOA seller flow. Supported listing configuration: ETH / USDG, creator fees on by default, and the six discoverable duration presets (1h, 12h, 1d, 3d, 7d default, 30d). Verify the exact signed order, price, consideration recipients, expiry, approval operator, ERC-1271 response and OpenSea submission/indexing. Observe Bankr's actual transaction approvals and user spending authority.
 

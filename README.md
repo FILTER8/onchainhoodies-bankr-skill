@@ -112,3 +112,7 @@ Bankr successfully created, signed, submitted and cancelled an OpenSea listing f
 The human UI remains at `https://onchainhoodies.xyz/hoodos/listingos`; the Bankr agent can discover presets through `GET https://onchainhoodies.xyz/api/listingos/prepare`, prepare orders via POST to the same path, verify signatures through `/api/listingos/check-signature`, and submit signed orders via `/api/listingos/submit`. See [references/marketplace.md](references/marketplace.md) for complete workflow and constraints.
 
 **Delegated Hoodies:** Delegates can perform authorized `HoodWallet.execute` approvals and Seaport validation but **cannot** sign valid ERC-1271 marketplace orders as the Hoodie owner. Neither OpenSea nor Net Bazaar discovery for unsigned prevalidated delegated listings has been achieved. Do not equate on-chain validated orders with publicly indexed listings. Keep the existing delegation and all other skill features intact.
+
+### v1.1 — Short-context X listing instructions
+
+The marketplace reference now includes a complete ListingOS submission JSON schema, exact Seaport EIP-712 signing rules, known USDG-required collections, and a fast-path workflow for public X sessions with limited context. X execution still depends on the actual @bankrbot runtime having the skill, transaction permissions, and the authenticated owner signing wallet. See [`references/marketplace.md`](references/marketplace.md).
