@@ -1,50 +1,49 @@
-# HoodOS marketplace: BuyOS / ListingOS (v0.9)
+# HoodOS marketplace: agent-owned ListingOS / BuyOS (v1.0)
 
-**Network:** Robinhood Chain mainnet, chain ID **4663**.
-**Canonical Hoodie NFT:** `0x9Ec6C5b9f572A9B02138E553BC5F5882Da735F45`.
-**HoodOS:** `0x1993c5515E81d2768f7F8D8a1e6e38Bbf4e4beB9`.
-**Listing Seaport 1.6:** `0x0000000000000068F116a894984e2DB1123eB395` (verify against returned order and the deployment before use).
+**Robinhood Chain:** chain ID `4663`. **Hoodie NFT:** `0x9Ec6C5b9f572A9B02138E553BC5F5882Da735F45`. **HoodOS:** `0x1993c5515E81d2768f7F8D8a1e6e38Bbf4e4beB9`. **Seaport 1.6:** `0x0000000000000068F116a894984e2DB1123eB395` (always cross-check against the live prepared order). **ListingOS:** `https://onchainhoodies.xyz/hoodos/listingos`; **BuyOS:** `https://onchainhoodies.xyz/hoodos/buyos`.
 
-## Use HoodOS, not a duplicate marketplace implementation
+## Status: what has actually worked
 
-- **BuyOS (human UI):** `https://onchainhoodies.xyz/hoodos/buyos` — check that this is the current deployed route before sending the user. Purchase an NFT **into the selected Hoodie’s canonical HoodWallet**. Do not assume the connected human EOA is the asset recipient.
-- **ListingOS (human UI):** `https://onchainhoodies.xyz/hoodos/listingos` — choose an active Hoodie, select an ERC-721 in its inventory, enter a fixed ETH price, prepare/review the OpenSea-supported order, then approve/sign as required. Active orders are displayed with artwork, price, **Cancel Listing** and **Change Price**; there is no longer a separate manual backup/import cancellation section.
-- These frontend routes are user-facing pages, **not autonomous agent APIs**. Bankr's ability to submit a transaction is determined by its actual host capabilities and wallet policy, not by availability of the website.
-- The working listing implementation uses OpenSea v2 listing creation actions to prepare Seaport orders, not fabricated order components. The successful public listing/cancellation was tested by the project developer in the human frontend; Bankr automation has **not** been proven end-to-end.
+- **Bankr-owned Hoodie #351:** Bankr signing wallet equalled on-chain Hoodie owner. The EIP-712 Seaport typed-data signature returned ERC-1271 magic `0x1626ba7e` from its HoodWallet, even though the HoodWallet—not the signing EOA—was Seaport `offerer`.
+- NFT `64 Faces #83` listed on OpenSea for **10 USDG**, with the NFT remaining in Hoodie #351's HoodWallet. The order was later **cancelled on-chain**: `0x688fcc40c9a04e1c545aa10ac4b93a47e675aae4bcfa5ae8bb61b06dc11573ac`. Do NOT treat this historical order as live.
+- ListingOS V2 prepared a 1-hour order with 10 USDG, creator royalties ON, for `8x8portrait #3` in Hoodie #351. The agent reported successful subsequent publication. **Do not reuse historical order hashes or expiry timestamps**; always prepare a new order for current trades.
+- **Delegated Hoodie #5500:** Bankr successfully minted `8x8portrait #687` from the delegated HoodWallet and approved the conduit; Seaport `validate()` succeeded, but Bankr's delegated EOA signature failed HoodWallet ERC-1271. OpenSea orderbook did not publish that delegated order. Do not confuse validated-on-chain with listed-on-marketplace.
 
-## Human ListingOS flow
+## Agent-owned listing: operational workflow
 
-1. Resolve the connected human EOA and selected Hoodie; check `ownerOf(tokenId)`, `HoodOS.walletOf(tokenId)`, active/deployed wallet and actual NFT owner. Avoid confusing the Hoodie token ID with the *listed NFT* token ID.
-2. Get the requested price in **ETH display units**; do not send wei into OpenSea's ETH price amount field. Present actual royalties and marketplace fees returned by OpenSea, not hardcoded rates.
-3. The human owner signs OpenSea/Seaport EIP-712 order data. In the tested ListingOS architecture, HoodWallet's ERC-1271 verifies that owner signature. **Delegation does not confer the human owner's EIP-712 signing identity.**
-4. If the NFT needs approval, the owner confirms the `HoodWallet.execute` transaction to approve the verified Seaport conduit; gas is paid by the outer signer. Submit the order and confirm OpenSea acceptance/indexing; a prepared or merely signed order is not proof of a live listing.
-5. **Cancel:** Select the exact active order; the server verifies it against the actual HoodWallet and on-chain order hash before preparing a Seaport `cancel` wrapped through `HoodWallet.execute`. Confirm receipt; re-query status. Do not cancel by matching only NFT name or arbitrary user-supplied hashes.
-6. **Change price:** Cancel the old listing on chain **first**, confirm it cannot remain fillable, then prepare/review/sign/publish a *new* order with the intended price. Cancelling does not itself update a price or automatically relist.
+1. Resolve the **actual Bankr signing EOA** from authenticated host tools. Query current Hoodie `ownerOf(hoodieId)`, active/deployed canonical `HoodOS.walletOf(hoodieId)` and NFT `ownerOf(listedTokenId)`. Owner EOA must equal Bankr signing EOA; listed NFT must be held by canonical HoodWallet. Never hardcode the test addresses from examples.
+2. Discover duration presets via **`GET https://onchainhoodies.xyz/api/listingos/prepare`**. Supported IDs and seconds: `1h`=`3600`, `12h`=`43200`, `1d`=`86400`, `3d`=`259200`, `7d`=`604800` (default), `30d`=`2592000`. Use `durationSeconds` on POST. `days` exists for compatible older day-based clients, but use presets for new operations.
+3. **`POST https://onchainhoodies.xyz/api/listingos/prepare`** with Hoodie ID, listed NFT contract and token ID, desired currency (`ETH` or `USDG`), display-unit price and exact duration, plus `useCreatorFee: true` by default. Example request (check deployed schema before relying on optional aliases):
 
-Important: If an order has already been signed or validated but is not indexed by OpenSea, it can still need cancellation. An OpenSea API listing view alone is not a complete inventory of possible signed orders. When in doubt, inspect Seaport state or use the exact saved order data, and avoid duplicate active orders.
+   ```json
+   {"hoodieId":"351","contract":"0x2eE6305804dD94F7ff695C5Ab1f3AE805f317653","tokenId":"3","currency":"USDG","priceAmount":"10","durationSeconds":3600,"useCreatorFee":true}
+   ```
 
-## Bankr agent decision path
+   Use the currently deployed API schema for `priceAmount`; if a deployment uses a different alias, inspect its route and adapt rather than guessing. **ETH values are decimal ETH, not wei**; USDG uses its live contract decimals. Let OpenSea generate its listing Actions fee recipients and conduit. Do not handwave marketplace or creator fees or splice an old signature into new order parameters.
+4. Validate **all** returned data: `offerer` must equal the HoodWallet; offered token/ID/quantity must match; counter and Seaport domain must be correct; consideration must sum to requested amount; all consideration items must use the chosen payment token; inspect seller proceeds, marketplace recipient and actual royalties. **Creator royalties ON** is the default request, not proof of a payout: inspect the signed consideration/verification result. Do not promise a creator payout when none applies. Respect enforced royalties; never bypass them.
+5. Verify `startTime` and `endTime`: the order must match the selected preset, not OpenSea's older default 30 days (or prior accidental multi-year expiration). ListingOS may modify OpenSea's original endTime and recompute the order hash. Sign **only the final returned Seaport EIP-712 `OrderComponents` with the final counter and timestamps**, never the original OpenSea Actions 30-day payload. Request a fresh order if expired.
+6. Inspect `approval`. If non-null, use the Bankr-host-supported transaction tool to call `HoodWallet.execute(nftContract,0,approval.data,0)` from the authenticated signer, after verifying the operator is the conduit obtained on-chain from the returned conduit key. Simulate, obey host confirmations, await receipt and reread approval. `setApprovalForAll` is broad; never approve an unexpected operator.
+7. Sign the final Seaport 1.6 typed-data payload using the **actual Hoodie-owner Bankr signing EOA**. Verify `HoodWallet.isValidSignature(digest, signature) == 0x1626ba7e`, including through `/api/listingos/check-signature` when supported. Mere delegation does not pass this check.
+8. **`POST /api/listingos/submit`** with the freshly prepared `parameters`, `counter`, `orderHash`, `seaport`, NFT identity, Hoodie ID and EIP-712 signature. Before submitting, recheck seller, price, all recipients, exact duration and active ownership. The backend validates signature and reports `submittedToOpenSea` / `activeConfirmed`; `submittedToOpenSea` alone does not prove active indexing. Verify via order lookup or marketplace UI and report any indexing lag accurately.
+9. Return listing link, exact expiration, order hash, payout breakdown, approval transaction hash (if any), and whether marketplace status was independently confirmed. Don't label a prepared/validated/signed order as "live".
 
-1. **Guidance only:** For requests such as “How do I list Hoodie #351’s NFT?” or “Where can I change a listing price?”, point to the existing HoodOS page and describe the steps. No chain write or signature.
-2. **Read-only inspection:** If the user requests a price/order/asset check, use available, authorized Bankr tools or supported public APIs to check the selected Hoodie, canonical HoodWallet, chain, NFT balance and OpenSea status. Do not claim marketplace results if no reliable source is accessible.
-3. **Buy on behalf of a Hoodie:** Only if Bankr supports the target action and the user explicitly requests it: derive Bankr's current signer, Hoodie ownership and wallet, activation, exact purchase target/value/data, wallet funds and gas, and live `HoodOS.canExecute` for the exact outer `HoodWallet.execute(target,value,data,0)` call. Simulate, obey all Bankr confirmation/spend limits, await receipt and verify that the NFT entered the *HoodWallet*. The human BuyOS may offer separate execution paths; do not blindly copy transactions.
-4. **List:** Do **not** claim Bankr can create the same ListingOS listing merely because it can buy and sell from its *own* EOA. The tested Seaport ERC-1271 method needs the current human Hoodie owner's EIP-712 signature, which delegation by itself does not provide. Unless Bankr has a separately verified authorized way to obtain that signature and complete OpenSea submission, instruct the human holder to use ListingOS. Never forge signatures, solicit private keys or submit an unsigned order.
-5. **Cancel/approve as delegate:** Distinguish a native on-chain HoodWallet operation from off-chain order signing. A delegate **may** be able to submit the exact `HoodWallet.execute` for cancellation or approval if `HoodOS.canExecute` authorizes it and the Bankr host supports the call; the Seaport order must be validated against the actual wallet and order details first. No blanket consent from an existing broad capability; request explicit user intent, simulate and obey policy.
-6. **Change price:** First ensure a confirmed cancellation of the old order, then require a newly signed/published replacement. Never claim a price is changed solely because cancellation succeeded.
+**Host limitations:** Installing this skill does not confer Wallet API signing permissions, authenticated web sessions, OpenSea API credentials or public X bot write access. The ListingOS backend holds its own OpenSea API key; never request or expose it. Use Bankr's supported calls and wallet policy, with the user's authorization for actual transactions.
 
-## Security / money movement
+## Cancellation / price change
 
-- Robinhood chain ID must equal **4663**, target and NFT contracts must match the intended action, and the signing identity must come from the authenticated Bankr session. Never use the owner's previously documented test EOA as a default.
-- A Hoodie owner and an authorized delegate are different identities; delegation is narrow permission, not transfer of ownership, control of the owner's browser, or ERC-1271 owner signing authority.
-- **ETH gas** for the outer transaction is usually paid by the authenticated sender. **ETH value** spent via `HoodWallet.execute` comes from HoodWallet's balance; never confuse these.
-- Buyer total, seller proceeds, fees, royalty recipients and token approvals are all critical. Verify the exact order and amounts before signing, and never silently normalize/adjust a price.
-- NFT approvals such as `setApprovalForAll` allow broad transfer authority; limit to verified marketplace operator/conduit, only when necessary, with explicit consent.
-- No trade, listing, approval or cancellation is successful until the relevant receipt and/or marketplace state have been checked.
+- Identify the **exact** currently active Seaport order, full components and counter; verify its HoodWallet offerer, NFT and status. Cancel via authorized `HoodWallet.execute(Seaport,0,Seaport.cancel([OrderComponents]),0)` and wait for receipt; verify `getOrderStatus(orderHash).isCancelled == true`. Do not cancel by token name alone.
+- A cancelled order may remain visually cached on OpenSea for a short time; chain cancellation prevents normal fulfillment. Cancelling does **not** revoke an existing NFT conduit approval; revoke separately only when requested/appropriate.
+- **Change price:** cancel original order **first**, confirm cancellation, then prepare/sign/submit a new order with the requested price. Never claim cancellation alone reprices a listing.
 
-## Suggested verification tests
+## Delegated Hoodies: limitations (not an automatic listing)
 
-- Bankr can correctly answer where BuyOS and ListingOS are, without pretending to control the frontend.
-- Bankr stops an attempted human owner listing when no owner signature is available.
-- Bankr correctly distinguishes Hoodie owner, canonical wallet, Bankr EOA and underlying listed NFT.
-- In an actual authorized delegated transaction, it checks `HoodOS.canExecute` with exact calldata and reports true transaction status.
-- After cancelling a listing, it does not claim that the new price is live until a replacement order is accepted.
+- Delegates with valid exact `HoodOS.canExecute` permission may mint, approve, cancel or call Seaport `validate()` through `HoodWallet.execute`. This does **not** change NFT ownership, make the delegate the ERC-1271 signer or grant unlimited agent authority.
+- A Seaport-prevalidated order with `signature: "0x"` can be enforceable **on-chain** even if its signature is not accepted by OpenSea's orderbook. This alone is not a public marketplace listing.
+- As inspected for Robinhood, Net Bazaar `BazaarV2FlexibleFee` `0x000000058F3aDE587388DaF827174d0E6fC97595` has `minFeeBps=0` and presently allows one consideration item, thus **not** separate seller/creator royalty recipients. Its SDK filters prevalidated orders lacking EOA/ERC-1271-valid signatures. Do not strip royalties just to force a submission; report the exact blocker and preserve the royalty policy.
+- Never tell a delegate to use the Hoodie owner's private key. A direct owner-signed flow through ListingOS is a different authorization path. Changes to signing permissions or Net Bazaar integration remain future work, not shipped features.
+
+## Bankr-ready examples
+
+- "List my 8x8portrait #3 from Hoodie #351 for 10 USDG, duration 1h, creator royalties ON." Verify ownership, discover presets, prepare, compare final signed order, approve only if needed, sign, ERC-1271-check, submit and confirm.
+- "List this NFT from delegated Hoodie #5500." Verify delegation; **explain the owner-signature barrier** before promising OpenSea discovery. Agent can carry out authorized on-chain operations only; do not claim ERC-1271 signing works for delegated EOAs.
+- "Cancel Hoodie #351's listing." Verify exact order and cancel on-chain, then check cancellation status.

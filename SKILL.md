@@ -64,16 +64,15 @@ Granting or revoking a capability requires the **current Hoodie owner's own auth
 
 For canonical addresses, ABI fragments, expiry and scope semantics, working verified examples, and security caveats, **read `references/delegation.md` before any delegated write.**
 
-## HoodOS marketplace: BuyOS and ListingOS (v0.9)
+## HoodOS marketplace: autonomous ListingOS (v1.0)
 
-For requests to buy, list, change the asking price, or cancel a listing for an NFT held by a Hoodie, **read `references/marketplace.md` first**. The human-facing tools already exist:
+For NFT listings, approvals, cancellations, prices, durations and royalties, **read `references/marketplace.md` before acting**. BuyOS: `https://onchainhoodies.xyz/hoodos/buyos`; ListingOS: `https://onchainhoodies.xyz/hoodos/listingos`.
 
-- **BuyOS:** `https://onchainhoodies.xyz/hoodos/buyos` (confirm current published route before directing users).
-- **ListingOS:** `https://onchainhoodies.xyz/hoodos/listingos`.
+**Agent-owned Hoodie: proven.** When the authenticated Bankr signing EOA equals the live `ownerOf(hoodieId)`, it may EIP-712-sign the Seaport order with that EOA; the canonical HoodWallet (Seaport offerer) verifies it via ERC-1271. Hoodie #351 demonstrated OpenSea publication and cancellation through this path. Use the live ListingOS API, not Bankr's ordinary EOA seller flow. Supported listing configuration: ETH / USDG, creator fees on by default, and the six discoverable duration presets (1h, 12h, 1d, 3d, 7d default, 30d). Verify the exact signed order, price, consideration recipients, expiry, approval operator, ERC-1271 response and OpenSea submission/indexing. Observe Bankr's actual transaction approvals and user spending authority.
 
-**Use the existing HoodOS experience; do not invent marketplace contracts or rebuild Seaport orders.** ListingOS has successfully prepared and submitted an OpenSea listing, retrieved active listings, and cancelled one via the canonical HoodWallet; this does **not** imply Bankr has authenticated web sessions or has executed those flows itself.
+**Delegated Hoodie: not yet OpenSea-publishable by Bankr alone.** Delegated `HoodWallet.execute` enables NFT minting, conduit approval and on-chain Seaport `validate`, but **does not** authorize off-chain ERC-1271 signatures. The delegated #5500 test passed on-chain validation but failed the signature-based OpenSea orderbook flow; Net Bazaar likewise lacks support for its three-recipient USDG royalty order and filters unsigned prevalidated orders. Never present Seaport validation as an indexed OpenSea/Bazaar listing. Owner signature or a separately verified compatible marketplace mechanism is needed.
 
-Distinguish **human owner signing** from **Bankr agent execution**: in the tested ListingOS flow, a connected *human owner* signs Seaport EIP-712 data and the HoodWallet's ERC-1271 verifies it; the owner-funded outer `HoodWallet.execute` handles on-chain NFT approval/cancellation. A delegated Bankr EOA cannot impersonate that owner's signature. Agents may transact only through genuinely available Bankr capabilities and exact on-chain `HoodOS.canExecute` delegation, with user consent and simulation. Never call a purchase or listing complete without receipts/marketplace verification. Changing price is cancel-old-first, then create/sign a new listing; cancellation alone does not create a replacement.
+For reprice, cancel the exact old order first and verify cancellation, then create and sign a new one. See `references/marketplace.md` for agent request examples, endpoints, limitations and safety checks.
 
 ## References
 
