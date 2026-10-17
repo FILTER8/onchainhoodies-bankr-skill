@@ -4,6 +4,8 @@ Chain ID: **4663**. RPC: `https://rpc.mainnet.chain.robinhood.com`. Explorer: `h
 
 | Contract | Address |
 |---|---|
+| FloorOS / HoodieFloor | `0x2602ef74497799D148093C3F1238193E72b22fD8` |
+| FloorOS Treasury destination | `0xB4C949eF42a39BB1F37e81661Ddf95f08d5965EC` |
 | OnChainHoodies ERC-721 | `0x9Ec6C5b9f572A9B02138E553BC5F5882Da735F45` |
 | HoodOS | `0x1993c5515E81d2768f7F8D8a1e6e38Bbf4e4beB9` |
 | HoodDelegation (owner-bound capability engine) | `0x2C3046462bd09890C14c8A465ae4eDC41515A0c6` |
@@ -52,3 +54,7 @@ See `references/hoodjourney.md` for correct nested ERC-6551 execution and the di
 ## Delegation extension (v0.5)
 
 A current Hoodie owner can delegate **canonical HoodWallet** execution to a separate EOA without transferring the NFT. Check `HoodOS.canExecute` for the exact signer/target/value/calldata/operation; permissions are scoped and time-limited, and an active Hoodie is required. Read `references/delegation.md` before any delegated write.
+
+## FloorOS
+
+Read `flooros.md` for protocol-funded Treasury purchases and exact nested HoodWallet execution. The worker wallet forwards zero ETH; FloorOS pays the NFT price.

@@ -1,11 +1,17 @@
 ---
 name: onchainhoodies
-description: "Interact with OnChainHoodies on Robinhood Chain using Bankr: inspect NFTs and ERC-6551 HoodWallets, activate Hoodies with OCH, read the live public collection API, discover HoodJourney milestones, execute eligible milestone check-ins, and operate HoodWallets using current-owner authorization or time-limited HoodOS delegation, and generate public Art Registry PNG/SVG HoodiePunks previews (Safe, Creative, Wild, experimental Glitch) plan HoodieStudio INK/Canvas publication, and guide buying, listing, price changes, and cancellation of NFTs owned by HoodWallets using HoodOS BuyOS and ListingOS. Use for \"show my Hoodies\", \"activate Hoodie #351\", \"tell me about the Hood\", \"show my Hoodie journey\", and \"collect a milestone\"."
+description: "Interact with OnChainHoodies on Robinhood Chain using Bankr: inspect NFTs and ERC-6551 HoodWallets, activate Hoodies with OCH, read the live public collection API, discover HoodJourney milestones, execute eligible milestone check-ins, and operate HoodWallets using current-owner authorization or time-limited HoodOS delegation, and generate public Art Registry PNG/SVG HoodiePunks previews (Safe, Creative, Wild, experimental Glitch) plan HoodieStudio INK/Canvas publication, and guide buying, listing, price changes, and cancellation of NFTs owned by HoodWallets using HoodOS BuyOS and ListingOS, and trigger protocol-funded FloorOS purchases for Treasury through an active Hoodie to earn OCH. Use for \"show my Hoodies\", \"activate Hoodie #351\", \"tell me about the Hood\", \"show my Hoodie journey\", and \"collect a milestone\"."
 ---
 
 # OnChainHoodies for Bankr
 
 Use the current Bankr user's wallet context. **Never use a fixed address as the user's wallet**, infer ownership from an X handle, or request private keys. The target chain is **Robinhood Chain mainnet (4663)**. Consult `references/contracts.md` before crafting contract interactions.
+
+## FloorOS: buy one Hoodie from the floor
+
+Treat “buy with one of your Hoodies one Hoodie from the floor using FloorOS” as an actionable request for **one protocol-funded purchase**. Read `references/flooros.md` before acting. Select one currently authorized, active canonical HoodWallet from the authenticated Bankr context; prefer a directly owned Hoodie, using the lowest token ID if several qualify and none is specified. For a delegated Hoodie, also read `references/delegation.md` and verify exact authorization. Do not activate, acquire OCH, fund a wallet, or grant delegation implicitly.
+
+FloorOS pays the NFT price from its own ETH; the purchased Hoodie goes to **Treasury**, and the triggering HoodWallet earns the live OCH reward. The Bankr signer pays outer gas. Use the fresh FloorOS listings/fulfillment APIs and wrap `buyFloorHoodie(purchasedTokenId, priceWei, seaportData)` in `HoodWallet.execute(FloorOS, 0, innerData, 0)` with **outer transaction value 0**. Never send the purchase price from the signer/HoodWallet, never submit the returned Seaport transaction directly, and never promise the acquired NFT belongs to the user. Run preflight, simulate, submit through permitted Bankr tools, and verify the receipt, Treasury NFT ownership, and actual reward. Respect host confirmations and limits; stop with the specific blocker if unavailable. Do not substitute a personal BuyOS purchase.
 
 ## Read-only discovery
 
