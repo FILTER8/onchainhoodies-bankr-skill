@@ -7,6 +7,12 @@ description: "Interact with OnChainHoodies on Robinhood Chain using Bankr: inspe
 
 Use the current Bankr user's wallet context. **Never use a fixed address as the user's wallet**, infer ownership from an X handle, or request private keys. The target chain is **Robinhood Chain mainnet (4663)**. Consult `references/contracts.md` before crafting contract interactions.
 
+## FACE64: agent plays a free practice game (Phase 1)
+
+For “play FACE64 with Hoodie #351”, “agent play FACE64”, or similar, **read `references/face64.md`** and use `node scripts/face64-free.mjs hoodie 351 --strategy balanced` if the host exposes Node and outbound HTTP. The script plays all eight rounds against the existing demo API, using actual server outcomes and an adaptive probability heuristic. Other strategies: `safe`, `aggressive`. Return the real final score and move log; never fabricate game completion.
+
+**Free-only hard boundary:** Demo gameplay does not verify ownership, does not require an active HoodWallet or delegation, costs no OCH, and creates no on-chain score or Journey milestone. This is not an action performed from the NFT's token-bound wallet. Bankr wallet and HoodOS delegation rules below remain unchanged. **Do not enter paid tournaments or submit funds on the strength of this command.** Paid agent play requires a separately implemented and verified authorization flow.
+
 ## FloorOS: buy one Hoodie from the floor
 
 Treat “buy with one of your Hoodies one Hoodie from the floor using FloorOS” as an actionable request for **one protocol-funded purchase**. Read `references/flooros.md` before acting. Select one currently authorized, active canonical HoodWallet from the authenticated Bankr context; prefer a directly owned Hoodie, using the lowest token ID if several qualify and none is specified. For a delegated Hoodie, also read `references/delegation.md` and verify exact authorization. Do not activate, acquire OCH, fund a wallet, or grant delegation implicitly.
