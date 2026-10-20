@@ -1,4 +1,4 @@
-# FACE64 agent gameplay — Phase 1 (free only)
+# FACE64 agent gameplay — free practice and paid tournament
 
 FACE64 is an 8-round 8x8 arcade game with a server-authoritative roulette move. Each RUN chooses a `startPosition` in 0..63; the server samples 7..13 steps uniformly and determines HIT/MISS. On HIT, an active pixel is removed and the unbanked reward grows; on MISS, unbanked round points are lost and play advances; BANK is allowed only in `decision` phase after a HIT.
 
@@ -20,9 +20,9 @@ The runner uses `POST /v1/face64/demo/sessions`, then `POST /v1/face64/demo/sess
 
 If this Bankr surface does not permit executing local scripts or making HTTP POST requests, say that this integration cannot run in this surface; do not invent a completed session or output. Skill installation does not grant network, terminal or wallet tools.
 
-## Paid tournament — NOT ENABLED
+## Paid tournament — Phase 2 with Bankr wallet tools
 
-No OCH approval, swapping, contract entry or score submission in this Phase 1 runner. Ranked currently requires an ownership-bound EOA challenge signature; delegated HoodWallet access is **not** automatically accepted by the ranked Worker. Do not bypass `ownerOf == signer` checks or the existing HoodOS `canExecute` authorization. A future paid skill requires contract-aware payments, safe user-approved budgets, an agent-compatible challenge path and receipt verification. Consult `references/delegation.md` and `references/contracts.md` before designing that phase.
+For explicitly authorized OCH tournament requests, **read `references/face64-ranked.md`**. The Node helper `scripts/face64-ranked.mjs` plays an already authenticated paid session and obtains the Worker-signed final result; it does not have custody of wallet keys and cannot enter or submit on-chain by itself. Bankr must use its own supported wallet tools for entry-fee approval, contract entry, EIP-191 challenge signing, and final score submission. Observe direct NFT ownership and the 100 OCH spending cap when authorized, exact contract ABIs, wallet prompts and UTC deadlines. No delegated ranked path is enabled. Do not switch from requested paid mode to free mode silently. A paid BANKR leaderboard label is not yet implemented on the ranked Worker.
 
 ## Free agent risk profiles
 

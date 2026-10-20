@@ -7,11 +7,13 @@ description: "Interact with OnChainHoodies on Robinhood Chain using Bankr: inspe
 
 Use the current Bankr user's wallet context. **Never use a fixed address as the user's wallet**, infer ownership from an X handle, or request private keys. The target chain is **Robinhood Chain mainnet (4663)**. Consult `references/contracts.md` before crafting contract interactions.
 
-## FACE64: agent plays a free practice game (Phase 1)
+## FACE64: free practice and explicitly authorized paid tournament
 
-For “play FACE64 with Hoodie #351”, “agent play FACE64”, or similar, **read `references/face64.md`** and use `node scripts/face64-free.mjs hoodie 351 --strategy balanced` if the host exposes Node and outbound HTTP. The script plays all eight rounds against the existing demo API, using actual server outcomes and an adaptive probability heuristic. Other strategies: `safe`, `aggressive`. Return the real final score and move log; never fabricate game completion.
+For “play FACE64” without an explicit paid/ranked request, **read `references/face64.md`** and run the unchanged free practice script: `node scripts/face64-free.mjs hoodie 351 --strategy balanced` if supported. Free gameplay costs no OCH and creates no on-chain score. The Bankr agent declares its identity in free sessions; see the reference.
 
-**Free-only hard boundary:** Demo gameplay does not verify ownership, does not require an active HoodWallet or delegation, costs no OCH, and creates no on-chain score or Journey milestone. This is not an action performed from the NFT's token-bound wallet. Bankr wallet and HoodOS delegation rules below remain unchanged. **Do not enter paid tournaments or submit funds on the strength of this command.** Paid agent play requires a separately implemented and verified authorization flow.
+For an **explicit paid / ranked FACE64 request**, **read `references/face64-ranked.md` fully** before acting. Support only an NFT directly owned by the authenticated Bankr signing EOA (no delegated or TBA workaround in this phase). Use the existing Bankr host wallet tools, not a sandbox private key, to verify the live tournament fee and status, approve at most the explicitly authorized exact OCH entry fee if needed, enter once, sign the returned EIP-191 ranked challenge, and create an authenticated session. Then run `scripts/face64-ranked.mjs` with the secret bearer token supplied **only via process environment**, and have Bankr submit the resulting Worker-signed score to the real FACE64 tournament contract. Verify both transaction receipts and on-chain entry/score records. Respect all wallet confirmations, network, spend caps and deadlines. **Never silently use free mode instead, invent unsupported Bankr sign/transaction APIs, or claim an on-chain score before confirmed submission.**
+
+Free and paid modes have distinct safety boundaries. The paid move runner itself **cannot** pay or sign; stop and report a concrete blocker if this Bankr runtime cannot perform the native wallet steps. Do not assume the paid BANKR badge is enabled in the ranked Worker until independently updated and verified.
 
 ## FloorOS: buy one Hoodie from the floor
 
