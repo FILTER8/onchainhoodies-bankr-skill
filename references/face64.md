@@ -23,3 +23,15 @@ If this Bankr surface does not permit executing local scripts or making HTTP POS
 ## Paid tournament — NOT ENABLED
 
 No OCH approval, swapping, contract entry or score submission in this Phase 1 runner. Ranked currently requires an ownership-bound EOA challenge signature; delegated HoodWallet access is **not** automatically accepted by the ranked Worker. Do not bypass `ownerOf == signer` checks or the existing HoodOS `canExecute` authorization. A future paid skill requires contract-aware payments, safe user-approved budgets, an agent-compatible challenge path and receipt verification. Consult `references/delegation.md` and `references/contracts.md` before designing that phase.
+
+## Free agent risk profiles
+
+- `safe`: BANK immediately after one successful HIT.
+- `balanced`: BANK after three successful HITs in a round (typically 7 round points).
+- `aggressive`: BANK after five successful HITs in a round (typically 31 round points).
+
+These are conservative gameplay heuristics, not mathematical guarantees. A MISS forfeits all unbanked round points; any previously BANKED points remain safe. The skill must not initiate OCH transactions in free mode.
+
+### Agent-declared identity
+
+The free runner declares `runner: "bankr"` and its selected strategy when creating a demo session. FACE64 displays **BANKR · Agent-declared** on free leaderboard, live feed, and replay. This is informational and does NOT prove that AI made every decision, establish NFT ownership, or grant wallet permissions. Never embed secrets in the skill.

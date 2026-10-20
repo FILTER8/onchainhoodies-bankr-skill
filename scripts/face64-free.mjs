@@ -26,24 +26,23 @@ export async function playFree({collection,tokenId,strategy='balanced',fetchImpl
   if (!['hoodie','face'].includes(collection)) throw new Error('collection must be hoodie or face');
   if (!Number.isSafeInteger(tokenId) || tokenId < (collection==='face'?1:0) || tokenId>(collection==='face'?512:5999)) throw new Error('Invalid token ID');
   if (!['safe','balanced','aggressive'].includes(strategy)) throw new Error('strategy must be safe, balanced or aggressive');
-  const created = await json(fetchImpl, `${base}/sessions`, {method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({collection,tokenId})});
+  const created = await json(fetchImpl, `${base}/sessions`, {method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({collection,tokenId,runner:"bankr",strategy})});
   const credential = created.sessionToken;
   if (!credential) throw new Error('Practice API did not provide session token');
   let session = created;
   const history = [];
   const maxActions = 500;
-  // Sample rules: safe -> bank after 1 hit, balanced -> bank when EV of running is below banked points,
-  // aggressive -> pursue at least 3 hits unless odds collapse. This is heuristic, not guaranteed optimal.
+  // Practical stop-loss strategies. Do not indefinitely chase high one-step EV: a MISS
+  // wipes the entire round's unbanked score. These are heuristics, not optimal play.
+  // safe: bank after every HIT; balanced: bank after three HITs (7 points),
+  // aggressive: bank after five HITs (31 points).
+  const targets = {safe:1, balanced:3, aggressive:5};
   for (let index=0;index<maxActions && session.status==='playing' && session.state.phase!=='finished';index++) {
     const s = session.state;
     const move = bestMove(s.rows);
     let verb = 'run';
     if (s.phase==='decision') {
-      const atRisk=s.roundPoints;
-      const nextReward=2**s.hits;
-      if (strategy==='safe' && s.hits>=1) verb='bank';
-      else if (strategy==='balanced' && move.probability*nextReward < (1-move.probability)*atRisk) verb='bank';
-      else if (strategy==='aggressive' && s.hits>=3 && move.probability<0.3) verb='bank';
+      if (s.hits >= targets[strategy] || move.hits === 0) verb='bank';
     }
     const params = verb==='run'?{startPosition:move.start}:{};
     const result = await json(fetchImpl,`${base}/sessions/${session.sessionId}/${verb}`,{method:'POST',headers:{'content-type':'application/json',authorization:`Bearer ${credential}`},body:JSON.stringify(params)});
@@ -52,7 +51,7 @@ export async function playFree({collection,tokenId,strategy='balanced',fetchImpl
     session=result.session;
   }
   if(session.status==='playing' && session.state.phase!=='finished') throw new Error('Safety stop: too many actions');
-  return {collection,tokenId,strategy,sessionId:session.sessionId,status:session.status,score:session.state.totalPoints,rounds:8,moves:history.length,history,mode:'free',paid:false,onchain:false};
+  return {collection,tokenId,strategy,sessionId:session.sessionId,status:session.status,score:session.state.totalPoints,rounds:8,moves:history.length,history,mode:'free',paid:false,onchain:false,runner:'bankr',verification:'self_declared'};
 }
 function parseArgs(args) {
   if (args.includes('--help') || args.length===0) return null;
