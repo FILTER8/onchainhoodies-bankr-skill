@@ -122,3 +122,8 @@ The human UI remains at `https://onchainhoodies.xyz/hoodos/listingos`; the Bankr
 ### v1.1 — Short-context X listing instructions
 
 The marketplace reference now includes a complete ListingOS submission JSON schema, exact Seaport EIP-712 signing rules, known USDG-required collections, and a fast-path workflow for public X sessions with limited context. X execution still depends on the actual @bankrbot runtime having the skill, transaction permissions, and the authenticated owner signing wallet. See [`references/marketplace.md`](references/marketplace.md).
+
+
+### ProfileOS agent-owned Hoodie test
+
+Bankr can attempt the owner-controlled ProfileOS API route for an **activated Hoodie directly owned by its authenticated signer**. Read [`references/profileos.md`](references/profileos.md) first. The flow uses a fresh nonce, **explicit user approval for OpenSea Terms/Privacy SIWE**, EIP-191 personal signing by the owner EOA, ERC-1271 confirmation via canonical HoodWallet, `POST /api/profileos/verify`, and a read-back check. The server routes are not included in the inspected frontend source, so success remains contingent on live testing. Do not reject solely because delegation is not supported; direct ownership is a separate scenario.
