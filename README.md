@@ -8,6 +8,12 @@ Ask your Bankr agent: `install the skill at https://github.com/FILTER8/onchainho
 
 Bankr installs this skill to the Bankr account using it. Installation alone does **not** globally enable it for all @bankrbot interactions on X.
 
+## November 2026 — World Wide Hood / HoodOS update
+
+This release adds the actual Hoodie homepage version-2 publish flow, gas-free follow/unfollow, follower lists, off-chain Hood Live/Memory guidance, the full HoodOS app directory, and careful OpenSea ProfileOS notes. See `references/hoodpage.md`, `following.md`, `live-history.md`, `profileos.md`, and `hoodos-catalog.md`.
+
+**Two separate deployments:** installing/updating the Bankr skill teaches the agent; updating `src/live/index.ts` and `src/memory/index.ts` in your existing Cloudflare Worker enables social history in Live and Memory. No added tables. **ProfileOS agent publishing is not yet verified** from the supplied frontend alone.
+
 ## Supported workflows
 
 - Inspect a specific Hoodie by token ID: current owner, token-bound wallet, deployment/activation state

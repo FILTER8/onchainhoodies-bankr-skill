@@ -62,3 +62,17 @@ Example:
 ```
 
 **Response verification:** Native Glitch is proven by `mode: "glitch"` plus actual `glitchBands` with signed shifts. If Bankr reports only 'added streak indices', inspect `GET /v1/art/generations/{generationId}` instead of assuming the Worker shifted rows. Never claim a preview is a minted or published work. Exact image deduplication keys off the *resulting bitmap*. Public creation is rate-limited; only claim success after receiving a real API response.
+
+
+## HoodPage and social (2026-11-07 Worker source)
+
+- `GET /v1/homepage/{tokenId}` — published v2 config; public read.
+- `GET /v1/homepage/directory` — public published-homepage directory.
+- `GET /v1/homepage/assets` — available curated assets.
+- `POST /v1/homepage/nonce` and `PUT /v1/homepage/{tokenId}` — owner/full HoodOS delegate gas-free publish, exact signed challenge. See [hoodpage.md](hoodpage.md).
+- `GET /v1/homepage/social/{id}`, `/followers`, `/following` — follower/following counters + relationships.
+- `POST /v1/homepage/social/nonce`, `/action` — owner/full delegate gas-free follow/unfollow. See [following.md](following.md).
+- `GET /v1/hood/live?stream=homepage`, `?includeHomepage=1` — implemented in user-supplied latest Worker.
+- `GET /v1/hood/live?stream=social`, `?includeSocial=1`, and social activity in token Memory — **companion Worker update only**; not present in original upload. See [live-history.md](live-history.md).
+
+**ProfileOS endpoints** are on **`https://onchainhoodies.xyz/api/profileos/...`**, not `api.onchainhoodies.xyz/v1/...`. Frontend code describes them; server routes are not included. See [profileos.md](profileos.md).

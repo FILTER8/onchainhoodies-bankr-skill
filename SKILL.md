@@ -1,11 +1,24 @@
 ---
 name: onchainhoodies
-description: "Interact with OnChainHoodies on Robinhood Chain using Bankr: inspect NFTs and ERC-6551 HoodWallets, activate Hoodies with OCH, read the live public collection API, discover HoodJourney milestones, execute eligible milestone check-ins, and operate HoodWallets using current-owner authorization or time-limited HoodOS delegation, and generate public Art Registry PNG/SVG HoodiePunks previews (Safe, Creative, Wild, experimental Glitch) plan HoodieStudio INK/Canvas publication, and guide buying, listing, price changes, and cancellation of NFTs owned by HoodWallets using HoodOS BuyOS and ListingOS, and trigger protocol-funded FloorOS purchases for Treasury through an active Hoodie to earn OCH. Use for \"show my Hoodies\", \"activate Hoodie #351\", \"tell me about the Hood\", \"show my Hoodie journey\", and \"collect a milestone\"."
+description: "Use OnChainHoodies on Robinhood Chain with Bankr: inspect NFTs and ERC-6551 HoodWallets, activate with OCH, execute authorized HoodOS and delegated transactions, FloorOS buys, BuyOS/ListingOS, marketplace operations, HoodJourney, FACE64 and HoodieStudio previews. Read/edit/publish Hoodie homepages, follow/unfollow other Hoodies using signed owner or full/open delegate authority, inspect Hood Live and Memory history, and guide OpenSea ProfileOS with explicit ERC-1271 and backend-verification limits. Use when asked to operate a Hoodie, control a HoodWallet, update a homepage, follow another Hoodie, inspect activity, or customize its OpenSea profile."
+
 ---
 
 # OnChainHoodies for Bankr
 
 Use the current Bankr user's wallet context. **Never use a fixed address as the user's wallet**, infer ownership from an X handle, or request private keys. The target chain is **Robinhood Chain mainnet (4663)**. Consult `references/contracts.md` before crafting contract interactions.
+
+## HoodPage, Following, ProfileOS, Hood Live (2026-11-07)
+
+For "update my Hoodie homepage", "publish Hoodie #N", "follow Hoodie #N with my Hoodie", "show followers", "Hood Live", "Hoodie history", or "set my HoodWallet OpenSea profile":
+
+- Read **`references/hoodpage.md`** for reading/configuring/publishing the *existing* v2 homepage, module schema and signed nonce flow. **Use the actual Bankr signer: current Hoodie owner or full/open delegate verified by existing HoodOS. No extra agent permission registry.** Do not overwrite existing modules when only a small change was requested.
+- Read **`references/following.md`** for the current gas-free follow/unfollow API, owner/full-delegate EIP-191 challenge flow and follower lists. Follow actions are off-chain D1 changes, **not HoodWallet `execute` transactions**.
+- Read **`references/profileos.md`** for the distinct OpenSea wallet profile (name, bio, username, avatar, banner). The uploaded frontend uses ERC-1271 SIWE and a **separate website backend not supplied**. Never assume full HoodOS delegation alone can generate an ERC-1271-valid signature; do not claim unattended ProfileOS publication is verified.
+- Read **`references/live-history.md`** when presenting activity and history. `includeHomepage=1` is implemented in the supplied Worker; `includeSocial=1` and social Memory depend on deploying the **companion Worker patch** supplied with this update. Never confuse immutable off-chain records with blockchain transactions or merge their cursors.
+- For existing NFT buying, listing, minting, FloorOS, HoodJourney, artwork and FACE64, retain and follow their dedicated references. The HoodOS website UI does not by itself prove an agent-accessible backend exists. Never invent Bankr signing methods or bypass host approval.
+
+For broad "what can my Hoodie do?" discovery, read **`references/hoodos-catalog.md`** for all currently visible HoodOS apps and their different verification levels.
 
 ## FACE64: free practice and explicitly authorized paid tournament
 
