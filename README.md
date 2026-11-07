@@ -127,3 +127,8 @@ The marketplace reference now includes a complete ListingOS submission JSON sche
 ### ProfileOS agent-owned Hoodie test
 
 Bankr can attempt the owner-controlled ProfileOS API route for an **activated Hoodie directly owned by its authenticated signer**. Read [`references/profileos.md`](references/profileos.md) first. The flow uses a fresh nonce, **explicit user approval for OpenSea Terms/Privacy SIWE**, EIP-191 personal signing by the owner EOA, ERC-1271 confirmation via canonical HoodWallet, `POST /api/profileos/verify`, and a read-back check. The server routes are not included in the inspected frontend source, so success remains contingent on live testing. Do not reject solely because delegation is not supported; direct ownership is a separate scenario.
+
+
+### ProfileOS standard profile (agent-owned Hoodies)
+
+The ProfileOS page suggests `OnchainHoodie_<tokenId>` for display name/username, uses the latest Hood Talk as the **default bio for new profiles**, and uses real Hoodie artwork for the avatar plus an optional 1200x300 black/Robin-green banner. The skill documents the same rules in `references/profileos.md` and `references/profileos-media.md`. Existing bio and media are retained unless the owner explicitly asks to replace them. Owner-owned Hoodie #1574 has passed live ERC-1271 SIWE plus OpenSea text-profile save and read-back; automated avatar/banner publishing still needs a real test.
